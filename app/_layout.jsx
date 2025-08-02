@@ -8,7 +8,9 @@ import {
 } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import i18n from "@/src/localization/i18n";
 import { CustomDarkTheme, CustomLightTheme } from "@/src/theme";
+import { I18nextProvider } from "react-i18next";
 import { useLoadFonts } from "../src/fonts/alexandria";
 
 export default function RootLayout() {
@@ -21,7 +23,7 @@ export default function RootLayout() {
   const { colors, fonts } = theme;
 
   // Hardcoded simulation
-  const firstLaunch = false;
+  const firstLaunch = true;
   const token = false;
 
   useEffect(() => {
@@ -41,23 +43,25 @@ export default function RootLayout() {
     // Show loading only while fonts are loading
     return (
       <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <View style={styles.loading}>
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: colors.text,
-                  fontFamily: fonts.displayLarge.fontFamily,
-                  fontSize: fonts.displayLarge.fontSize,
-                  lineHeight: fonts.displayLarge.lineHeight,
-                },
-              ]}
-            >
-              Loading...
-            </Text>
-          </View>
-        </PaperProvider>
+        <I18nextProvider i18n={i18n}>
+          <PaperProvider theme={theme}>
+            <View style={styles.loading}>
+              <Text
+                style={[
+                  styles.title,
+                  {
+                    color: colors.text,
+                    fontFamily: fonts.displayLarge.fontFamily,
+                    fontSize: fonts.displayLarge.fontSize,
+                    lineHeight: fonts.displayLarge.lineHeight,
+                  },
+                ]}
+              >
+                Loading...
+              </Text>
+            </View>
+          </PaperProvider>
+        </I18nextProvider>
       </SafeAreaProvider>
     );
   }
@@ -65,9 +69,11 @@ export default function RootLayout() {
   // When fontsLoaded and no redirect triggered, render Slot (fallback)
   return (
     <SafeAreaProvider>
-      <PaperProvider theme={theme}>
-        <Slot />
-      </PaperProvider>
+      <I18nextProvider i18n={i18n}>
+        <PaperProvider theme={theme}>
+          <Slot />
+        </PaperProvider>
+      </I18nextProvider>
     </SafeAreaProvider>
   );
 }

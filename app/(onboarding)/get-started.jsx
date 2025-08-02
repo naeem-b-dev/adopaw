@@ -1,7 +1,6 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Button, Text } from "react-native-paper";
 import { useRouter } from "expo-router";
+import OnboardingScreen from "../../src/features/onboarding/components/OnboardingScreen";
 
 export default function GetStarted() {
   const router = useRouter();
@@ -11,24 +10,6 @@ export default function GetStarted() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineLarge" style={styles.text}>
-        Get Started With Adopaw
-      </Text>
-      <Button mode="contained" onPress={goNext} style={styles.button}>
-        Get Started
-      </Button>
-    </View>
+    <OnboardingScreen step="getStarted" namespace="onboarding" onNext={goNext} buttonTextKey="finish" />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  text: { marginBottom: 24, textAlign: "center" },
-  button: { width: 150 },
-});
