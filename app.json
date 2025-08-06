@@ -23,6 +23,10 @@
       "output": "static",
       "favicon": "./src/assets/images/favicon.png"
     },
+    "extra": {
+      "supportsRTL": true,
+      "forcesRTL": false
+    },
     "plugins": [
       "expo-router",
       [
