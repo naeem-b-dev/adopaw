@@ -23,8 +23,8 @@ export default function RootLayout() {
   const { colors, fonts } = theme;
 
   // Hardcoded simulation
-  const firstLaunch = true;
-  const token = false;
+  const firstLaunch = false;
+  const token = true;
 
   useEffect(() => {
     if (fontsLoaded) {

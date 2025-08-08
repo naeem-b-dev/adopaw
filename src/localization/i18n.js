@@ -1,11 +1,10 @@
-import * as Localization from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 i18n.use(initReactI18next).init({
   fallbackLng: "en",
   // lng: Localization.getLocales()[0].languageCode,
-  lng: 'en',
+  lng: 'ar',
   ns: [],
   interpolation: { escapeValue: false },
 });
