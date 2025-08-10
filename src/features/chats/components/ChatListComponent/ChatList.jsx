@@ -15,10 +15,11 @@ export default function ChatList({ chats }) {
     console.log("✅ ChatList mounted");
   }, []);
 
-  const goToChat = (id) => {
+
+  const goToChat = (id, name) => {
     router.push({
       pathname: "/chats/[chatId]",
-      params: { chatId: id },
+      params: { chatId: id, title: name },
     });
   };
 
@@ -44,10 +45,10 @@ export default function ChatList({ chats }) {
             key={chat.id}
             avatar={chat.avatar}
             name={chat.name}
-            message={t(chat.message, { defaultValue: chat.message })}
+            message={chat.message}
             timestamp={chat.timestamp}
             unreadCount={chat.unreadCount}
-            onPress={() => goToChat(chat.id)}
+            onPress={() => goToChat(chat.id, chat.name)} 
           />
         ))}
       </View>

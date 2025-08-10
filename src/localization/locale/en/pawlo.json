@@ -1,0 +1,11 @@
+{
+  "title": "Pawlo",
+  "description": "I’m here to help you find your perfect pet, learn how to care for them, and answer anything about your furry (or feathery!) friends.\nJust ask me anything — I’m all ears!",
+  "suggestionTitle": "Some Suggestions",
+  "suggestions": [
+    { "label": "🐾 What should I feed my puppy?", "type": "blue" },
+    { "label": "📋 Adoption Process", "type": "coral" },
+    { "label": "✂️ Nail trimming guide", "type": "coral" },
+    { "label": "🧸 Best toys for Pets", "type": "blue" }
+  ]
+}

@@ -1,15 +1,17 @@
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import { useLocalSearchParams, useRouter } from "expo-router";
+
+import ChatInput from "@/src/features/chats/components/pawlo/ChatInput";
 import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
-  TextInput,
-  View,
+  StyleSheet
 } from "react-native";
-import { IconButton, Text, useTheme } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+
 
 import maxImg from "@/assets/images/max.jpg";
 import ImageMessage from "@/src/features/chats/components/chatIdComponents/ImageMessage.jsx";
@@ -98,25 +100,9 @@ export default function ChatDetailScreen() {
         contentContainerStyle={styles.messagesList}
         showsVerticalScrollIndicator={false}
       />
+      <ChatInput />
 
-      {/* Input Area */}
-      <View
-        style={[
-          styles.inputArea,
-          {
-            backgroundColor: theme.colors.surface,
-            borderTopColor: palette.neutral[200],
-          },
-        ]}
-      >
-        <TextInput
-          style={[styles.input, { color: palette.neutral[900] }]}
-          placeholder={t("typeMessage")}
-          placeholderTextColor={palette.neutral[500]}
-        />
-        <IconButton icon="microphone" />
-        <IconButton icon="send" />
-      </View>
+
     </KeyboardAvoidingView>
   );
 }

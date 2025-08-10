@@ -3,10 +3,9 @@ import { Text, useTheme } from "react-native-paper";
 
 export default function ImageMessage({ imageSource, label, timestamp }) {
   const theme = useTheme();
-  const { palette } = theme.colors;
 
-  const textColor = theme.dark ? palette.neutral[50] : palette.neutral[900];
-  const timestampColor = theme.dark ? palette.neutral[200] : palette.neutral[500];
+  const labelColor = theme.colors.onSurface;
+  const timestampColor = theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
 
   return (
     <View
@@ -17,7 +16,7 @@ export default function ImageMessage({ imageSource, label, timestamp }) {
     >
       <Image source={imageSource} style={styles.petImage} />
       <View style={styles.labelRow}>
-        <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
         <Text style={[styles.timestamp, { color: timestampColor }]}>
           {timestamp}
         </Text>
