@@ -43,7 +43,9 @@ export default function Chats() {
 
   const load = async () => {
     controllerRef.current?.abort();
-    const ac = new AbortSignal.abort ? new AbortController() : { signal: undefined };
+    const ac = new AbortSignal.abort()
+      ? new AbortController()
+      : { signal: undefined };
     const signal = "signal" in ac ? ac.signal : undefined;
     controllerRef.current = ac;
     setLoading(true);
@@ -64,7 +66,9 @@ export default function Chats() {
   }, [JSON.stringify(filters)]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <FlatList
         data={pets}
         keyExtractor={(item, index) => String(item.id ?? item._id ?? index)}
@@ -109,13 +113,22 @@ export default function Chats() {
             />
 
             {error ? (
-              <Text style={{ textAlign: "center", marginTop: 8, color: theme.colors.error }}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  marginTop: 8,
+                  color: theme.colors.error,
+                }}
+              >
                 {error}
               </Text>
             ) : null}
           </View>
         }
-        columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 12 }}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          marginBottom: 12,
+        }}
         renderItem={({ item }) => (
           <PetCard
             pet={item}
@@ -123,7 +136,11 @@ export default function Chats() {
           />
         )}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 110 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 110,
+        }}
         refreshing={loading}
         onRefresh={load}
         ListEmptyComponent={

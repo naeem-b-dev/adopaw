@@ -31,7 +31,7 @@ export default function HomeLayout() {
       <Stack.Screen
         name="[petId]"
         options={{
-          headerShown: true, // Show header with back button
+          headerShown: false, // Show header with back button
           title: "Pet Details",
           headerBackTitle: "Home",
           animation: "slide_from_right",

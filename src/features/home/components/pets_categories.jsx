@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next";
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
+import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 
 const categories = [
   { key: "cat", label: "Cat", icon: require("../../../assets/images/animal/cat.png") },
@@ -13,7 +13,7 @@ const categories = [
 
 export default function PetsCategories({ selected, onSelect, style }) {
   const theme = useTheme();
-  const { t } = useTranslation("home");
+  const { t } = useTranslationLoader("home");
 
   const blue = theme.colors.palette.blue;
   const neutral = theme.colors.palette.neutral;

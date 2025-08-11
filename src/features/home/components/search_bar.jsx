@@ -1,10 +1,10 @@
-import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { TextInput, useTheme } from "react-native-paper";
+import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 
 export default function SearchBar({ value, onChangeText, style, onSubmitEditing }) {
   const theme = useTheme();
-  const { t } = useTranslation("home");
+  const { t } = useTranslationLoader("home");
 
   const blue = theme.colors.palette.blue;
   const neutral = theme.colors.palette.neutral;
