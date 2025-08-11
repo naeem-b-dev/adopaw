@@ -1,4 +1,3 @@
-import React from "react";
 import { useRouter } from "expo-router";
 import OnboardingScreen from "../../src/features/onboarding/components/OnboardingScreen";
 
@@ -9,7 +8,16 @@ export default function OnboardingStep2() {
     router.push("/step3");
   };
 
+  const goBack = () => {
+    router.back();
+  };
+
   return (
-      <OnboardingScreen step="step2" namespace="onboarding" onNext={goNext} />
+    <OnboardingScreen
+      currentStep={2}
+      namespace="onboarding"
+      onNext={goNext}
+      onPrev={goBack}
+    />
   );
 }

@@ -6,7 +6,8 @@ export default function OnboardingStackLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: "simple_push",
+        animation: "ios_from_right",
+        
       }}
     />
   );

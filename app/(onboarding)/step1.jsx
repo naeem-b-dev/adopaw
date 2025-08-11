@@ -10,6 +10,6 @@ export default function OnboardingStep1() {
   };
 
   return (
-    <OnboardingScreen step="step1" namespace="onboarding" onNext={goNext} />
+    <OnboardingScreen currentStep={1} namespace="onboarding" onNext={goNext} />
   );
 }
