@@ -5,6 +5,7 @@ export default function AppButton({
   text,
   onPress,
   variant = "primary",
+  loading,
   style,
 }) {
   const { colors, fonts } = useTheme();
@@ -22,6 +23,8 @@ export default function AppButton({
     <Button
       mode="contained"
       onPress={onPress}
+      loading={loading}
+      disabled={loading}
       contentStyle={styles.buttonContent}
       style={[
         styles.button,

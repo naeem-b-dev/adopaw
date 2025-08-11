@@ -1,11 +1,13 @@
-import React, { useRef } from "react";
-import { Animated, ImageBackground, StyleSheet, View } from "react-native";
+import { ImageBackground, StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 import Heading from "../../../shared/components/ui/Heading/Heading";
 
-export default function OnboardingScreen({ namespace = "onboarding", currentStep }) {
+export default function OnboardingScreen({
+  namespace = "onboarding",
+  currentStep,
+}) {
   const insets = useSafeAreaInsets();
   const { dark } = useTheme();
   const { t } = useTranslationLoader(namespace);
@@ -42,29 +44,29 @@ export default function OnboardingScreen({ namespace = "onboarding", currentStep
   }
 
   return (
-      <ImageBackground
-        source={image}
-        style={styles.imageBackground}
-        resizeMode="cover"
+    <ImageBackground
+      source={image}
+      style={styles.imageBackground}
+      resizeMode="cover"
+    >
+      <View
+        style={[
+          styles.contentContainer,
+          {
+            paddingBottom: insets.bottom + 32,
+            paddingTop: insets.top,
+            paddingHorizontal: 24,
+            marginBottom: currentStep === 5 ? 60 : 100,
+          },
+        ]}
       >
-        <View
-          style={[
-            styles.contentContainer,
-            {
-              paddingBottom: insets.bottom + 32,
-              paddingTop: insets.top,
-              paddingHorizontal: 24,
-              marginBottom: currentStep === 5 ? 60 : 100
-            },
-          ]}
-        >
-          <Heading 
-            title={t(`${step}.title`)}
-            description={t(`${step}.description`)}
-            align="center"
-          />
-        </View>
-      </ImageBackground>
+        <Heading
+          title={t(`${step}.title`)}
+          description={t(`${step}.description`)}
+          align="center"
+        />
+      </View>
+    </ImageBackground>
   );
 }
 

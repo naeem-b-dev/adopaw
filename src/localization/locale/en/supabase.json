@@ -1,0 +1,14 @@
+{
+  "invalidCredentials": "Invalid email or password.",
+  "userAlreadyRegistered": "This email is already registered.",
+  "emailRateLimit": "Too many attempts. Please try again later.",
+  "emailNotConfirmed": "Please confirm your email before logging in.",
+  "userNotFound": "User not found.",
+  "invalidEmail": "Invalid email address.",
+  "weakPassword": "Password must be at least 6 characters.",
+  "invalidToken": "Invalid or expired token.",
+  "missingPassword": "Password is required.",
+  "tokenExpired": "Session has expired. Please log in again.",
+  "emailNotConfirmedOrInvalid": "Email not confirmed or invalid credentials.",
+  "generic": "An unexpected error occurred. Please try again."
+}

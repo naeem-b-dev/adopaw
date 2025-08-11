@@ -1,0 +1,39 @@
+{
+  "snackbar": {
+    "ok": "OK"
+  },
+  "animal": {
+    "cat": "Cat",
+    "dog": "Dog",
+    "rabbit": "Rabbit",
+    "fish": "Fish",
+    "bird": "Bird",
+    "hamster": "Hamster"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female"
+  },
+  "colors": {
+    "white": "White",
+    "black": "Black",
+    "gray": "Gray",
+    "silver": "Silver",
+    "tan": "Tan",
+    "cream": "Cream",
+    "orange": "Orange",
+    "brown": "Brown",
+    "chocolate": "Chocolate",
+    "reddish": "Reddish",
+    "yellow": "Yellow",
+    "blue": "Blue"
+  },
+  "age": {
+    "months": "{{count}} month",
+    "months_plural": "{{count}} months",
+    "years": "{{count}} year",
+    "years_plural": "{{count}} years",
+    "years_decimal": "{{count}} years",
+    "selected": "Selected Age"
+  }
+}

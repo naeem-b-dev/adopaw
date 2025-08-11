@@ -1,0 +1,39 @@
+{
+  "snackbar": {
+    "ok": "حسنًا"
+  },
+  "animal": {
+    "cat": "قطة",
+    "dog": "كلب",
+    "rabbit": "أرنب",
+    "fish": "سمكة",
+    "bird": "عصفور",
+    "hamster": "هامستر"
+  },
+  "gender": {
+    "male": "ذكر",
+    "female": "أنثى"
+  },
+  "colors": {
+    "white": "أبيض",
+    "black": "أسود",
+    "gray": "رمادي",
+    "silver": "فضي",
+    "tan": "بيج",
+    "cream": "كريمي",
+    "orange": "برتقالي",
+    "brown": "بني",
+    "chocolate": "شكولاتة",
+    "reddish": "محمر",
+    "yellow": "أصفر",
+    "blue": "أزرق"
+  },
+    "age": {
+      "months": "{{count}} شهر",
+      "months_plural": "{{count}} أشهر",
+      "years": "{{count}} سنة",
+      "years_plural": "{{count}} سنوات",
+      "years_decimal": "{{count}} سنة",
+      "selected": "العمر المحدد"
+    }
+}
