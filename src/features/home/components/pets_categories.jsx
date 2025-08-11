@@ -1,7 +1,5 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Image, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
 const categories = [
@@ -42,10 +40,9 @@ export default function PetsCategories({ selected, onSelect, style }) {
                 onPress={() => onSelect(isSelected ? null : cat.key)}
                 activeOpacity={0.8}
               >
-                <MaterialCommunityIcons
-                  name={cat.icon}
-                  size={28}
-                  color={isSelected ? "#fff" : theme.colors.onSurface}
+                <Image
+                  source={cat.icon}
+                  style={styles.icon} resizeMode="contain"
                 />
                 <Text
                   style={{
@@ -76,4 +73,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5, 
   },
+  icon: { width: 28, height: 28 },
 });

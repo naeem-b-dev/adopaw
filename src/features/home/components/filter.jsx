@@ -1,5 +1,5 @@
 import Slider from "@react-native-community/slider";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
@@ -7,7 +7,8 @@ import AppButton from "../../../shared/components/ui/AppButton/AppButton";
 import PetsCategories from "./pets_categories";
 
 
-export default function Filter({ onClose }) {
+
+export default function Filter({ onClose, onApply }) {
   const theme = useTheme();
   const { t } = useTranslation("home");
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -36,6 +37,19 @@ export default function Filter({ onClose }) {
     { key: "high", label: t("activity.high", "High") },
   ];
   const [distance, setDistance] = useState(50); // default 50 km
+
+  const applyFilters = () => {
+    const payload = {
+      category: selectedCategory,
+      age: selectedAge,
+      size: selectedSize,
+      gender: selectedGender,
+      activity: selectedActivity,
+      distance,
+    };
+    if (onApply) onApply(payload);
+    else onClose && onClose();
+  };
 
   const styles = StyleSheet.create({
     sectionTitle: {
@@ -282,7 +296,7 @@ export default function Filter({ onClose }) {
         <AppButton
           text={t("done", "Done")}
           variant="primary"
-          onPress={onClose}
+          onPress={applyFilters}
           style={styles.doneButton}
         />
       </View>
