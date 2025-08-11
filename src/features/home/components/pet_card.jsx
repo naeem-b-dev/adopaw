@@ -2,24 +2,28 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
-/**
- * Props: { pet, onPress }
- * pet: { id, name, image, age, breed, gender, distance | distanceKm }
- */
+const headerBgByCategory = {
+  cat: "#FFE8F0",
+  dog: "#FFEFE2",
+  rabbit: "#F3E9FF",
+  fish: "#E8F5FF",
+  bird: "#F1FFE8",
+  hamster: "#FFF6E8",
+};
+
 export default function PetCard({ pet, onPress }) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
 
-  // Match Home padding (16) and column gap (12)
   const H_PADDING = 16;
   const GAP = 12;
-  const COLS = 2;
-  const cardWidth = Math.floor((width - H_PADDING * 2 - GAP) / COLS);
+  const cardWidth = Math.floor((width - H_PADDING * 2 - GAP) / 2);
 
   const isMale = pet.gender?.toLowerCase() === "male";
   const genderIcon = isMale ? "male" : "female";
-  const genderColor = isMale ? "#3B82F6" : "#EC4899"; // blue / pink
+  const genderColor = isMale ? "#3B82F6" : "#EC4899";
   const distanceText = pet.distance ?? (typeof pet.distanceKm === "number" ? `${pet.distanceKm} km` : "");
+  const headerBg = headerBgByCategory[pet.category] ?? "#F3F4F6";
 
   return (
     <TouchableOpacity
@@ -35,34 +39,23 @@ export default function PetCard({ pet, onPress }) {
         },
       ]}
     >
-      {/* Framed image with a primary outline and large radius */}
-      <View style={styles.imageWrapper}>
-        <Image source={{ uri: pet.image }} style={{ width: "100%", aspectRatio: 1, borderRadius: 24 }} />
+      <View style={[styles.header, { backgroundColor: headerBg }]}>
+        <Image source={{ uri: pet.image }} style={styles.image} resizeMode="cover" />
       </View>
 
+      <View style={styles.content}>
+        <View style={styles.titleRow}>
+          <Text numberOfLines={1} style={[styles.name, { color: theme.colors.onSurface }]}>
+            {pet.name}
+          </Text>
+          <MaterialIcons name={genderIcon} size={20} color={genderColor} />
+        </View>
 
-      {/* Name + gender icon */}
-      <View style={styles.titleRow}>
-        <Text
-          numberOfLines={1}
-          style={[styles.name, { color: theme.colors.onSurface }]}
-        >
-          {pet.name}
-        </Text>
-        <MaterialIcons name={genderIcon} size={20} color={genderColor} />
-      </View>
-
-      {/* Pills */}
-      <View style={styles.chipsRow}>
-        {pet.age ? (
-          <Pill text={pet.age} bg="#E8F2FF" fg="#3B82F6" icon="access-time" />
-        ) : null}
-        {pet.breed ? (
-          <Pill text={pet.breed} bg="#FDE7EF" fg="#EC4899" icon="pets" />
-        ) : null}
-        {distanceText ? (
-          <Pill text={`${distanceText} Far`} bg="#EEEEEE" fg="#6B7280" icon="location-on" />
-        ) : null}
+        <View style={styles.pills}>
+          {pet.age ? <Pill text={pet.age} bg="#E8F2FF" fg="#3B82F6" icon="access-time" /> : null}
+          {pet.breed ? <Pill text={pet.breed} bg="#FDE7EF" fg="#EC4899" icon="pets" /> : null}
+          {distanceText ? <Pill text={`${distanceText} Far`} bg="#EEEEEE" fg="#6B7280" icon="location-on" /> : null}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -79,42 +72,33 @@ function Pill({ text, bg, fg, icon }) {
   );
 }
 
-const RADIUS = 24;
+const RADIUS = 18;
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: RADIUS,
+    borderRadius: 24,
     borderWidth: 1,
     overflow: "hidden",
     elevation: 3,
     marginBottom: 12,
-    padding: 12, // inner padding to match the mock
+    padding: 12,
   },
-  imageWrapper: {
-    borderRadius: 24,
+  header: {
+    borderRadius: RADIUS,
     overflow: "hidden",
   },
   image: {
     width: "100%",
-    aspectRatio: 1, // square image like the mock
+    aspectRatio: 1,
   },
+  content: { marginTop: 10 },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
   },
-  name: {
-    fontWeight: "800",
-    fontSize: 20,
-    flexShrink: 1,
-    marginRight: 8,
-  },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 10,
-  },
+  name: { fontWeight: "800", fontSize: 20, flexShrink: 1, marginRight: 8 },
+  pills: { flexDirection: "row", flexWrap: "wrap", marginTop: 10 },
   pill: {
     flexDirection: "row",
     alignItems: "center",

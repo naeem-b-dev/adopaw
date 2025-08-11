@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Image, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
 const categories = [
@@ -21,39 +21,32 @@ export default function PetsCategories({ selected, onSelect, style }) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={[styles.scrollContainer, style]}
     >
-      {categories.map(cat => {
+      {categories.map((cat) => {
         const isSelected = selected === cat.key;
         return (
-              <TouchableOpacity
-                key={cat.key}
-                style={[
-                  styles.button,
-                  {
-                    backgroundColor: isSelected
-                      ? theme.colors.primary
-                      : theme.colors.background,
-                    borderColor: isSelected
-                      ? theme.colors.primary
-                      : theme.colors.onSurface,
-                  },
-                ]}
-                onPress={() => onSelect(isSelected ? null : cat.key)}
-                activeOpacity={0.8}
+          <TouchableOpacity
+            key={cat.key}
+            activeOpacity={0.85}
+            onPress={() => onSelect(isSelected ? null : cat.key)}
+            style={[
+              styles.pill,
+              {
+                borderColor: isSelected ? theme.colors.primary : theme.colors.outlineVariant,
+                backgroundColor: isSelected ? "#E8F2FF" : theme.colors.surface,
+              },
+            ]}
+          >
+            <View style={styles.pillInner}>
+              <Image source={cat.icon} style={styles.icon} resizeMode="contain" />
+              <Text
+                variant="labelMedium"
+                style={{ color: isSelected ? theme.colors.primary : theme.colors.onSurface }}
+                numberOfLines={1}
               >
-                <Image
-                  source={cat.icon}
-                  style={styles.icon} resizeMode="contain"
-                />
-                <Text
-                  style={{
-                    color: isSelected ? "#fff" : theme.colors.onSurface,
-                    marginTop: 4,
-                  }}
-                  variant="labelMedium"
-                >
-                  {t(cat.key, cat.label)}
-                </Text>
-              </TouchableOpacity>
+                {t(cat.key, cat.label)}
+              </Text>
+            </View>
+          </TouchableOpacity>
         );
       })}
     </ScrollView>
@@ -61,17 +54,14 @@ export default function PetsCategories({ selected, onSelect, style }) {
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    paddingHorizontal: 8,
-  },
-  button: {
-    width: 80,          
-    height: 80,         
+  scrollContainer: { paddingHorizontal: 4, gap: 10 },
+  pill: {
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1.5,
     justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    borderRadius: 16,
-    borderWidth: 1.5, 
   },
-  icon: { width: 28, height: 28 },
+  pillInner: { flexDirection: "row", alignItems: "center", gap: 8 },
+  icon: { width: 20, height: 20 },
 });
