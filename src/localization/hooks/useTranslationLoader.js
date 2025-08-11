@@ -18,7 +18,6 @@ export const useTranslationLoader = (namespaces) => {
     Promise.all(nsArray.map((ns) => loadNamespace(ns, lang))).then(() => {
       if (isMounted) {
         setReady(true);
-
       }
     });
 

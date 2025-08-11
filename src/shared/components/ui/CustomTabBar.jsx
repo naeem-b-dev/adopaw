@@ -1,0 +1,214 @@
+import { Ionicons, MaterialIcons } from "@expo/vector-icons"; // tabs
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React from "react";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const ORDER = ["home", "map", "chats", "profile"];
+
+const BAR_HEIGHT = 70;
+const ICON_SIZE = 28; // closer to Figma
+const FAB_SIZE = 70;
+const FAB_ICON = 45;
+const SPACER = FAB_SIZE + 9;
+
+function iconFor(name, focused) {
+  switch (name) {
+    case "home":
+      return focused ? "home" : "home-outline";
+    case "map":
+      return focused ? "location" : "location-outline";
+    case "chats":
+      return focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline";
+    case "profile":
+      return focused ? "person" : "person-outline";
+    default:
+      return "ellipse-outline";
+  }
+}
+
+export default function CustomTabBar({ state, descriptors, navigation }) {
+  const theme = useTheme();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const routes = ORDER.map((n) =>
+    state.routes.find((r) => r.name === n)
+  ).filter(Boolean);
+  const left = routes.slice(0, 2);
+  const right = routes.slice(2);
+  const isFocused = (route) =>
+    state.index === state.routes.findIndex((r) => r.key === route.key);
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: insets.bottom - 12,
+          backgroundColor: theme.colors.surface,
+        },
+      ]}
+    >
+      <View style={[styles.bar]}>
+        {/* left */}
+        <View style={styles.side}>
+          {left.map((route) => {
+            const focused = isFocused(route);
+            const label = descriptors[route.key]?.options?.title ?? route.name;
+            return (
+              <TouchableOpacity
+                key={route.key}
+                style={styles.tab}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(route.name)}
+              >
+                <Ionicons
+                  name={iconFor(route.name, focused)}
+                  size={ICON_SIZE}
+                  color={
+                    focused
+                      ? theme.colors.primary
+                      : theme.colors.palette.neutral[400]
+                  }
+                />
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.labelMedium.fontFamily,
+                    fontSize: theme.fonts.labelMedium.fontSize,
+                    lineHeight: theme.fonts.labelMedium.lineHeight,
+                    fontWeight: "600",
+                    marginTop: 4,
+                    color: focused
+                      ? theme.colors.primary
+                      : theme.colors.palette.neutral[400],
+                  }}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* spacer under FAB */}
+        <View style={{ width: SPACER }} />
+
+        {/* right */}
+        <View style={styles.side}>
+          {right.map((route) => {
+            const focused = isFocused(route);
+            const label = descriptors[route.key]?.options?.title ?? route.name;
+            return (
+              <TouchableOpacity
+                key={route.key}
+                style={styles.tab}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(route.name)}
+              >
+                <Ionicons
+                  name={iconFor(route.name, focused)}
+                  size={ICON_SIZE}
+                  color={
+                    focused
+                      ? theme.colors.primary
+                      : theme.colors.palette.neutral[400]
+                  }
+                />
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.labelMedium.fontFamily,
+                    fontSize: theme.fonts.labelMedium.fontSize,
+                    lineHeight: theme.fonts.labelMedium.lineHeight,
+                    fontWeight: "600",
+                    marginTop: 4,
+                    color: focused
+                      ? theme.colors.primary
+                      : theme.colors.palette.neutral[400],
+                  }}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* centered FAB (rounded +) */}
+        <TouchableOpacity
+          activeOpacity={0.95}
+          onPress={() => router.push("/(tabs)/addPet")}
+          style={[
+            styles.fab,
+            {
+              top: -FAB_SIZE / 4,
+              left: "54%",
+              transform: [{ translateX: -FAB_SIZE / 3 }],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.palette.blue[400]]}
+            start={{ x: 0.5, y: 0.0 }}
+            end={{ x: 0.5, y: 1.0 }} // lighter at bottom
+            style={styles.fabCircle}
+          >
+            <MaterialIcons name="add" size={FAB_ICON} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { position: "absolute", left: 0, right: 0, bottom: 0 },
+  bar: {
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 22,
+    paddingTop: 8, // slightly tighter vertical rhythm
+    paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    overflow: "visible",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: -2 },
+      },
+      android: { elevation: 8 },
+    }),
+  },
+  side: { flexDirection: "row", alignItems: "center" },
+  tab: { width: 76, alignItems: "center", justifyContent: "center" },
+  fab: {
+    position: "absolute",
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+      },
+      android: { elevation: 12 },
+    }),
+  },
+  fabCircle: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

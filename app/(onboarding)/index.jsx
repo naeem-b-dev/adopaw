@@ -11,6 +11,7 @@ import OnboardingStep2 from "./step2";
 import OnboardingStep3 from "./step3";
 import OnboardingStep4 from "./step4";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function OnboardingPager() {
   const pagerRef = useRef(null);
@@ -28,11 +29,12 @@ export default function OnboardingPager() {
     <GetStarted key={5} currentStep={5} />,
   ];
 
-  const goToNext = () => {
+  const goToNext = async () => {
     if (page < steps.length - 1) {
       pagerRef.current?.setPage(page + 1);
     } else {
       // ✅ Replace navigation on last step
+      await AsyncStorage.setItem("alreadyLaunched", "true");
       router.replace("/login");
     }
   };
@@ -60,7 +62,6 @@ export default function OnboardingPager() {
             paddingBottom: insets.bottom + 32,
             paddingTop: 16,
             paddingHorizontal: 24,
-            
           },
         ]}
       >

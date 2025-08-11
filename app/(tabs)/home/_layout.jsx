@@ -25,6 +25,9 @@ export default function HomeLayout() {
           headerShown: false, // Keep tab layout for main screen
         }}
       />
+
+      <Stack.Screen name="filter" options={{ title: "Filters", headerShown: true }} />
+
       <Stack.Screen
         name="[petId]"
         options={{

@@ -40,7 +40,6 @@ export default function BootScreen() {
         setMessage("Checking onboarding flag...");
         const firstLaunchFlag = await AsyncStorage.getItem("alreadyLaunched");
         // const firstLaunchFlag = true;
-
         if (!firstLaunchFlag) {
           router.replace("/(onboarding)");
           return;
