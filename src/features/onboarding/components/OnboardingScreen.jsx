@@ -1,20 +1,16 @@
-import { ImageBackground, StyleSheet, View } from "react-native";
+import React, { useRef } from "react";
+import { Animated, ImageBackground, StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
-import AppButton from "../../../shared/components/ui/AppButton/AppButton";
 import Heading from "../../../shared/components/ui/Heading/Heading";
 
-export default function OnboardingScreen({
-  step,
-  namespace = "onboarding",
-  onNext,
-  buttonTextKey = "next",
-}) {
+export default function OnboardingScreen({ namespace = "onboarding", currentStep }) {
   const insets = useSafeAreaInsets();
-  const { colors, dark } = useTheme();
+  const { dark } = useTheme();
   const { t } = useTranslationLoader(namespace);
 
+  const step = currentStep === 5 ? "getStarted" : `step${currentStep}`;
   const imageMap = {
     step1: {
       light: require("../../../assets/images/step1-light.png"),
@@ -44,34 +40,36 @@ export default function OnboardingScreen({
     console.warn(`Missing image for step "${step}"`);
     return null;
   }
-  return (
-    <ImageBackground
-      source={image}
-      style={styles.imageBackground}
-      resizeMode="cover"
-    >
-      <View
-        style={[
-          styles.contentContainer,
-          {
-            paddingBottom: insets.bottom + 32,
-            paddingTop: insets.top,
-          },
-        ]}
-      >
-        <Heading
-          title={t(`${step}.title`)}
-          description={t(`${step}.description`)}
-          align="center"
-        />
 
-        <AppButton onPress={onNext} text={t(buttonTextKey)} />
-      </View>
-    </ImageBackground>
+  return (
+      <ImageBackground
+        source={image}
+        style={styles.imageBackground}
+        resizeMode="cover"
+      >
+        <View
+          style={[
+            styles.contentContainer,
+            {
+              paddingBottom: insets.bottom + 32,
+              paddingTop: insets.top,
+              paddingHorizontal: 24,
+              marginBottom: currentStep === 5 ? 60 : 100
+            },
+          ]}
+        >
+          <Heading 
+            title={t(`${step}.title`)}
+            description={t(`${step}.description`)}
+            align="center"
+          />
+        </View>
+      </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   imageBackground: {
     flex: 1,
     width: "100%",
@@ -80,8 +78,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     justifyContent: "flex-end",
-    paddingHorizontal: 24,
     alignItems: "center",
     textAlign: "center",
+    height: "fit-content",
+    marginBottom: 88,
   },
 });
