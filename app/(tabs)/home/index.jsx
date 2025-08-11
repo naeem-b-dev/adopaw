@@ -65,7 +65,7 @@ export default function Chats() {
   }, [JSON.stringify(filters)]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background  }]}>
       <Text
         style={{
           fontFamily: fonts.light,
@@ -104,7 +104,7 @@ export default function Chats() {
         <PetsCategories
           selected={selectedCategory}
           onSelect={setSelectedCategory}
-          style={{ marginTop: 7, marginBottom: 50 }}
+          style={{ marginTop: 15, marginBottom: 35 }}
         />
       </ScrollView>
 
@@ -126,14 +126,9 @@ export default function Chats() {
     />
   )}
   showsVerticalScrollIndicator={false}
-  contentContainerStyle={{ paddingVertical: 12 }}
+  contentContainerStyle={{ paddingVertical: 8 }}
   refreshing={loading}
   onRefresh={load}
-  ListHeaderComponent={
-    <Text style={{ textAlign: "center", marginVertical: 8 }}>
-      {`Found ${pets.length} pets`}
-    </Text>
-  }
   ListEmptyComponent={
     !loading && !error ? (
       <Text style={{ textAlign: "center", marginTop: 24 }}>

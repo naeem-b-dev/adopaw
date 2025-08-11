@@ -15,13 +15,17 @@ export default function PetsCategories({ selected, onSelect, style }) {
   const theme = useTheme();
   const { t } = useTranslation("home");
 
+  const blue = theme.colors.palette.blue;
+  const neutral = theme.colors.palette.neutral;
+  const radius = theme.custom?.radii?.lg ?? 16; // rounded-rect (not full pill)
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={[styles.scrollContainer, style]}
     >
-      {categories.map((cat) => {
+      {categories.map((cat, idx) => {
         const isSelected = selected === cat.key;
         return (
           <TouchableOpacity
@@ -29,19 +33,25 @@ export default function PetsCategories({ selected, onSelect, style }) {
             activeOpacity={0.85}
             onPress={() => onSelect(isSelected ? null : cat.key)}
             style={[
-              styles.pill,
+              styles.item,
               {
-                borderColor: isSelected ? theme.colors.primary : theme.colors.outlineVariant,
-                backgroundColor: isSelected ? "#E8F2FF" : theme.colors.surface,
+                borderRadius: radius,
+                borderColor: isSelected ? blue[500] : neutral[300],
+                backgroundColor: isSelected ? blue[100] : theme.colors.surface,
+                marginRight: idx === categories.length - 1 ? 0 : 10, // fallback if gap not supported
               },
             ]}
           >
-            <View style={styles.pillInner}>
+            <View style={styles.inner}>
               <Image source={cat.icon} style={styles.icon} resizeMode="contain" />
               <Text
-                variant="labelMedium"
-                style={{ color: isSelected ? theme.colors.primary : theme.colors.onSurface }}
                 numberOfLines={1}
+                style={{
+                  color: theme.colors.onSurface,
+                  fontFamily: theme.fonts.titleSmall.fontFamily,
+                  fontSize: theme.fonts.titleSmall.fontSize,
+                  lineHeight: theme.fonts.titleSmall.lineHeight,
+                }}
               >
                 {t(cat.key, cat.label)}
               </Text>
@@ -54,14 +64,18 @@ export default function PetsCategories({ selected, onSelect, style }) {
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: { paddingHorizontal: 4, gap: 10 },
-  pill: {
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    borderWidth: 1.5,
+  scrollContainer: {
+    paddingHorizontal: 4,
+  },
+  item: {
+    height: 44,                 // more rectangle feel (vs oval)
+    paddingHorizontal: 14,
+    borderWidth: 1,
     justifyContent: "center",
   },
-  pillInner: { flexDirection: "row", alignItems: "center", gap: 8 },
-  icon: { width: 20, height: 20 },
+  inner: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  icon: { width: 22, height: 22, marginRight: 8 },
 });

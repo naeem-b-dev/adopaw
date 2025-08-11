@@ -2,6 +2,17 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
+// "2y" -> "2 years old", "1y" -> "1 year old", "6m" -> "6 months old"
+const formatAge = (age) => {
+  if (!age) return "";
+  const s = String(age).trim().toLowerCase();
+  const n = parseInt(s.replace(/[^0-9]/g, ""), 10);
+  if (Number.isNaN(n)) return String(age);
+  if (s.includes("m")) return `${n} month${n === 1 ? "" : "s"} old`;
+  return `${n} year${n === 1 ? "" : "s"} old`;
+};
+
+
 const headerBgByCategory = {
   cat: "#FFE8F0",
   dog: "#FFEFE2",
@@ -21,9 +32,12 @@ export default function PetCard({ pet, onPress }) {
 
   const isMale = pet.gender?.toLowerCase() === "male";
   const genderIcon = isMale ? "male" : "female";
-  const genderColor = isMale ? "#3B82F6" : "#EC4899";
+  const genderColor = isMale ? theme.colors.palette.blue[500] : "#EC4899";
   const distanceText = pet.distance ?? (typeof pet.distanceKm === "number" ? `${pet.distanceKm} km` : "");
   const headerBg = headerBgByCategory[pet.category] ?? "#F3F4F6";
+
+  const nameFont = theme.fonts.titleLarge; // 20px per your tokens
+  const genderSize = nameFont.fontSize;    // match name size
 
   return (
     <TouchableOpacity
@@ -33,9 +47,7 @@ export default function PetCard({ pet, onPress }) {
         styles.card,
         {
           width: cardWidth,
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.outlineVariant,
-          shadowColor: theme.colors.shadow,
+          backgroundColor: theme.colors.surface, // no border, no shadow
         },
       ]}
     >
@@ -45,16 +57,27 @@ export default function PetCard({ pet, onPress }) {
 
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text numberOfLines={1} style={[styles.name, { color: theme.colors.onSurface }]}>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{
+              fontFamily: nameFont.fontFamily,
+              fontSize: nameFont.fontSize,
+              lineHeight: nameFont.lineHeight,
+              fontWeight: "800",
+              color: theme.colors.onSurface,
+              flexShrink: 1,
+            }}
+          >
             {pet.name}
           </Text>
-          <MaterialIcons name={genderIcon} size={20} color={genderColor} />
+          <MaterialIcons name={genderIcon} size={genderSize} color={genderColor} style={{ marginLeft: 6 }} />
         </View>
 
         <View style={styles.pills}>
-          {pet.age ? <Pill text={pet.age} bg="#E8F2FF" fg="#3B82F6" icon="access-time" /> : null}
+          {pet.age ? <Pill text={formatAge(pet.age)} bg="#E8F2FF" fg={theme.colors.palette.blue[500]} icon="access-time" /> : null}
           {pet.breed ? <Pill text={pet.breed} bg="#FDE7EF" fg="#EC4899" icon="pets" /> : null}
-          {distanceText ? <Pill text={`${distanceText} Far`} bg="#EEEEEE" fg="#6B7280" icon="location-on" /> : null}
+          {distanceText ? <Pill text={distanceText } bg="#EEEEEE" fg="#6B7280" icon="location-on" /> : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -77,11 +100,9 @@ const RADIUS = 18;
 const styles = StyleSheet.create({
   card: {
     borderRadius: 24,
-    borderWidth: 1,
-    overflow: "hidden",
-    elevation: 3,
     marginBottom: 12,
     padding: 12,
+    overflow: "hidden",          // keeps corners clean; no shadow, no border
   },
   header: {
     borderRadius: RADIUS,
@@ -95,9 +116,7 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  name: { fontWeight: "800", fontSize: 20, flexShrink: 1, marginRight: 8 },
   pills: { flexDirection: "row", flexWrap: "wrap", marginTop: 10 },
   pill: {
     flexDirection: "row",
