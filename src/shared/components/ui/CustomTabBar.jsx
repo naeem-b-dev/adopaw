@@ -1,22 +1,25 @@
-import { MaterialCommunityIcons as MDI } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons"; // tabs
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
-
 const ORDER = ["home", "map", "chats", "profile"];
-const FAB_SIZE = 52;           // size in the mock
-const FAB_ICON = 45;           // plus size in the mock
-const SPACER = FAB_SIZE + 16;  // gap in bar for FAB
+
+const BAR_HEIGHT = 70;
+const ICON_SIZE = 30;     // closer to Figma
+const FAB_SIZE  = 70;
+const FAB_ICON  = 45;
+const SPACER    = FAB_SIZE + 9;
 
 function iconFor(name, focused) {
   switch (name) {
     case "home":    return focused ? "home" : "home-outline";
-    case "map":     return focused ? "map-marker" : "map-marker-outline";
-    case "chats":   return focused ? "chat-processing" : "chat-processing-outline"; // bubble with dots
-    case "profile": return focused ? "account" : "account-outline";
-    default:        return "circle-outline";
+    case "map":     return focused ? "location" : "location-outline";
+    case "chats":   return focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline";
+    case "profile": return focused ? "person" : "person-outline";
+    default:        return "ellipse-outline";
   }
 }
 
@@ -24,11 +27,11 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const theme = useTheme();
   const router = useRouter();
 
-  // fixed order; ignore hidden routes like addPet
   const routes = ORDER.map(n => state.routes.find(r => r.name === n)).filter(Boolean);
-  const left = routes.slice(0, 2);
+  const left  = routes.slice(0, 2);
   const right = routes.slice(2);
-  const isFocused = (route) => state.index === state.routes.findIndex(r => r.key === route.key);
+  const isFocused = (route) =>
+    state.index === state.routes.findIndex(r => r.key === route.key);
 
   return (
     <View style={styles.container}>
@@ -37,8 +40,6 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
           styles.bar,
           {
             backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.outlineVariant,
-            shadowColor: theme.colors.shadow,
           },
         ]}
       >
@@ -48,11 +49,27 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             const focused = isFocused(route);
             const label = descriptors[route.key]?.options?.title ?? route.name;
             return (
-              <TouchableOpacity key={route.key} style={styles.tab} activeOpacity={0.85}
-                onPress={() => navigation.navigate(route.name)}>
-                <MDI name={iconFor(route.name, focused)} size={30}
-                     color={focused ? theme.colors.primary : theme.colors.onSurfaceDisabled}/>
-                <Text style={[styles.label, { color: focused ? theme.colors.primary : theme.colors.onSurfaceDisabled }]}>
+              <TouchableOpacity
+                key={route.key}
+                style={styles.tab}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(route.name)}
+              >
+                <Ionicons
+                  name={iconFor(route.name, focused)}
+                  size={ICON_SIZE}
+                  color={focused ? theme.colors.primary : theme.colors.palette.neutral[400]}
+                />
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.labelMedium.fontFamily,
+                    fontSize: theme.fonts.labelMedium.fontSize,
+                    lineHeight: theme.fonts.labelMedium.lineHeight,
+                    fontWeight: "600",
+                    marginTop: 4,
+                    color: focused ? theme.colors.primary : theme.colors.palette.neutral[400],
+                  }}
+                >
                   {label}
                 </Text>
               </TouchableOpacity>
@@ -60,7 +77,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
           })}
         </View>
 
-        {/* center spacer (under FAB) */}
+        {/* spacer under FAB */}
         <View style={{ width: SPACER }} />
 
         {/* right */}
@@ -69,11 +86,27 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             const focused = isFocused(route);
             const label = descriptors[route.key]?.options?.title ?? route.name;
             return (
-              <TouchableOpacity key={route.key} style={styles.tab} activeOpacity={0.85}
-                onPress={() => navigation.navigate(route.name)}>
-                <MDI name={iconFor(route.name, focused)} size={30}
-                     color={focused ? theme.colors.primary : theme.colors.onSurfaceDisabled}/>
-                <Text style={[styles.label, { color: focused ? theme.colors.primary : theme.colors.onSurfaceDisabled }]}>
+              <TouchableOpacity
+                key={route.key}
+                style={styles.tab}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(route.name)}
+              >
+                <Ionicons
+                  name={iconFor(route.name, focused)}
+                  size={ICON_SIZE}
+                  color={focused ? theme.colors.primary : theme.colors.palette.neutral[400]}
+                />
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.labelMedium.fontFamily,
+                    fontSize: theme.fonts.labelMedium.fontSize,
+                    lineHeight: theme.fonts.labelMedium.lineHeight,
+                    fontWeight: "600",
+                    marginTop: 4,
+                    color: focused ? theme.colors.primary : theme.colors.palette.neutral[400],
+                  }}
+                >
                   {label}
                 </Text>
               </TouchableOpacity>
@@ -81,22 +114,28 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
           })}
         </View>
 
-        {/* perfectly centered FAB */}
+        {/* centered FAB (rounded +) */}
         <TouchableOpacity
           activeOpacity={0.95}
           onPress={() => router.push("/(tabs)/addPet")}
           style={[
             styles.fab,
             {
-              backgroundColor: theme.colors.primary,
-              top: -FAB_SIZE / 4,        // half above the bar
-              left: "55%",
-              transform: [{ translateX: -FAB_SIZE / 2 }],
-              shadowColor: theme.colors.shadow,
+              top: -FAB_SIZE / 4,
+              left: "54%",
+              transform: [{ translateX: -FAB_SIZE / 3 }],
             },
           ]}
         >
-          <MDI name="plus" size= {FAB_ICON} color="#fff" />
+
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.palette.blue[400]]}
+            start={{ x: 0.5, y: 0.0 }}
+            end={{ x: 0.5, y: 1.0 }} // lighter at bottom
+            style={styles.fabCircle}
+          >
+            <MaterialIcons name="add" size={FAB_ICON} color="#fff" />
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -106,22 +145,23 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
   container: { position: "absolute", left: 0, right: 0, bottom: 0 },
   bar: {
-    marginHorizontal: 16,
-    borderRadius: 22,
-    borderWidth: 1,
-    paddingVertical: 6,       // thinner like mock
-    paddingHorizontal: 16,
+    height: BAR_HEIGHT,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 22,
+    paddingTop: 8,   // slightly tighter vertical rhythm
+    paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    overflow: "visible",
     ...Platform.select({
-      ios: { shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 6 },
+      ios: { shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: -2 } },
+      android: { elevation: 8 },
     }),
   },
   side: { flexDirection: "row", alignItems: "center" },
-  tab: { width: 64, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 11, marginTop: 3 },
+  tab: { width: 76, alignItems: "center", justifyContent: "center" },
   fab: {
     position: "absolute",
     width: FAB_SIZE,
@@ -130,8 +170,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     ...Platform.select({
-      ios: { shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 10 },
+      ios: { shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
+      android: { elevation: 12 },
     }),
+  },
+  fabCircle: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
