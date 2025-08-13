@@ -1,8 +1,8 @@
-{
-  "today": "اليوم",
-  "yesterday": "أمس",
-  "typeMessage": "اكتب رسالة",
-  "chatTitle": "الدردشة",
-  "backToChats": "المحادثات",
-  "pawloTitle": "باولو"
-}
+ {
+   "chatTitle": "محادثة",
+   "backToChats": "رجوع",
+   "pawloTitle": "باولو",
+   "today": "اليوم",
+   "inputPlaceholder": "اكتب رسالة…",
+   "typing": "يكتب…"
+ }

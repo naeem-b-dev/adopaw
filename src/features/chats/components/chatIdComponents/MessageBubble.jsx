@@ -1,56 +1,73 @@
 // src/features/chats/components/chatIdComponents/MessageBubble.jsx
-
+import { selectUserId } from "@/src/features/auth/store/authSlice";
+import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Surface, Text, useTheme } from "react-native-paper";
+import { useSelector } from "react-redux";
 
-export default function MessageBubble({ type = "incoming", text, timestamp }) {
+export default function MessageBubble({ item }) {
   const theme = useTheme();
+  const me = useSelector(selectUserId);
+  const isMine = item?.senderId === me;
   const { palette } = theme.colors;
 
-  const isIncoming = type === "incoming";
+  const timeLabel = useMemo(() => {
+    if (!item?.createdAt) return "";
+    try {
+      const d = new Date(item.createdAt);
+      return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  }, [item?.createdAt]);
+
+  const bg = isMine ? theme.colors.primary : theme.colors.surface;
+  const fg = isMine ? theme.colors.onPrimary : theme.colors.onSurface;
+  const ts = palette?.neutral?.[500] || theme.colors.outline;
 
   return (
     <View
       style={[
-        styles.messageBubble,
-        isIncoming ? styles.incomingBubble : styles.outgoingBubble,
-        {
-          backgroundColor: isIncoming ? theme.colors.surface : palette.blue[400],
-        },
+        styles.row,
+        { justifyContent: isMine ? "flex-end" : "flex-start" },
       ]}
     >
-      <Text
+      <Surface
+        elevation={1}
         style={[
-          styles.messageText,
-          { color:  palette.neutral[900]  },
+          styles.bubble,
+          {
+            backgroundColor: isMine ? bg : bg, // bg set above
+            maxWidth: "85%",
+          },
         ]}
       >
-        {text}
-      </Text>
-      <Text style={[styles.timestamp, { color: palette.neutral[500] }]}> 
-        {timestamp}
-      </Text>
+        <Text style={[styles.text, { color: fg }]} variant="bodyMedium">
+          {item?.content?.text ?? ""}
+        </Text>
+        {!!timeLabel && (
+          <Text style={[styles.time, { color: ts }]}>{timeLabel}</Text>
+        )}
+      </Surface>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  messageBubble: {
-    maxWidth: "80%",
+  row: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: "row",
+  },
+  bubble: {
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 16,
   },
-  incomingBubble: {
-    alignSelf: "flex-start",
-  },
-  outgoingBubble: {
-    alignSelf: "flex-end",
-  },
-  messageText: {
+  text: {
     fontFamily: "Alexandria_400Regular",
     fontSize: 14,
   },
-  timestamp: {
+  time: {
     fontSize: 11,
     marginTop: 4,
     alignSelf: "flex-end",

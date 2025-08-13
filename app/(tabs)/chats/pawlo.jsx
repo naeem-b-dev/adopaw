@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 
-import ChatInput from "@/src/features/chats/components/pawlo/ChatInput";
+import ChatInput from "@/src/features/chats/components/ChatInput";
 import PawloHeader from "@/src/features/chats/components/pawlo/PawloHeader";
 import SuggestionChips from "@/src/features/chats/components/pawlo/SuggestionChips";
 
