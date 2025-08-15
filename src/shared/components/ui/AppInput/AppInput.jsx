@@ -9,9 +9,12 @@ export default function AppInput({
   icon = null,
   isPassword = false,
   style,
+  max,
+  keyboardType,
   error = false,
   errorMessage = "",
   onBlur,
+  multiline = false,
 }) {
   const isRTL = RNI18nManager.isRTL;
   const [secure, setSecure] = useState(isPassword);
@@ -42,7 +45,10 @@ export default function AppInput({
         value={value}
         onChangeText={onChangeText}
         onBlur={onBlur}
+        maxLength={max}
+        keyboardType={keyboardType}
         placeholder={placeholder}
+        multiline={multiline}
         secureTextEntry={isPassword ? secure : false}
         mode="outlined"
         style={[

@@ -11,8 +11,23 @@ export const gender = [
     iconColor: coral[500],
   },
 ];
-export const activity = ["Low"];
 
+export const age = [
+  { labelKey: "age.days", value: "days" },
+  { labelKey: "age.months", value: "months" },
+  { labelKey: "age.years", value: "years" },
+];
+export const activityOption = [
+  { labelKey: "activity.low", value: "low" },
+  { labelKey: "activity.medium", value: "medium" },
+  { labelKey: "activity.high", value: "high" },
+];
+
+export const sizeOptions = [
+  { labelKey: "size.small", value: "small" },
+  { labelKey: "size.medium", value: "medium" },
+  { labelKey: "size.big", value: "big" },
+];
 export const animalsColors = [
   {
     value: "#FFFFFF",

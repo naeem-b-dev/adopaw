@@ -1,0 +1,74 @@
+{
+  "title": "إضافة حيوان أليف",
+  "imagePick": "اضغط لإضافة صور الحيوان الأليف",
+  "inputs": {
+    "name": {
+      "label": "اسم الحيوان الأليف",
+      "placeholder": "أدخل اسم الحيوان الأليف"
+    },
+    "description": {
+      "label": "وصف الحيوان الأليف",
+      "placeholder": "أدخل وصف الحيوان الأليف"
+    },
+    "specie": {
+      "label": "نوع الحيوان",
+      "placeholder": "اختر"
+    },
+    "breed": {
+      "label": "سلالة الحيوان",
+      "placeholder": "اختر"
+    },
+    "age": {
+      "label": "عمر الحيوان",
+      "placeholder": "القيمة",
+      "months": "أشهر",
+      "years": "سنوات",
+      "days": "أيام"
+    },
+    "ageUnit": {
+      "placeholder": "اختر"
+    },
+    "color": {
+      "label": "لون/ألوان الحيوان",
+      "placeholder": "اختر ألوان الحيوان"
+    },
+    "size": {
+      "label": "حجم الحيوان",
+      "placeholder": "اختر",
+      "small": "صغير",
+      "medium": "متوسط",
+      "big": "كبير"
+    },
+    "activity": {
+      "label": "نشاط الحيوان",
+      "placeholder": "اختر",
+      "low": "خفيف",
+      "medium": "متوسط",
+      "high": "عالي"
+    },
+    "gender": {
+      "label": "جنس الحيوان"
+    },
+    "health": {
+      "label": "ملاحظات صحية",
+      "sterilized": "مُعقم",
+      "vaccinated": "مُطعّم",
+      "dewormed": "معالج من الديدان",
+      "hasPassport": "يمتلك جواز سفر",
+      "specialNeeds": "احتياجات خاصة"
+    }
+  },
+  "submit": "إرسال",
+  "errors": {
+    "imagesRequired": "يرجى إضافة صورة واحدة على الأقل للحيوان الأليف.",
+    "nameRequired": "يرجى إدخال اسم الحيوان الأليف.",
+    "specieRequired": "يرجى اختيار النوع.",
+    "colorRequired": "يرجى اختيار لون واحد على الأقل.",
+    "ageRequired": "يرجى إدخال عمر الحيوان الأليف.",
+    "ageUnitRequired": "يرجى إدخال وحدة عمر الحيوان الأليف.",
+    "sizeRequired": "يرجى اختيار حجم الحيوان الأليف.",
+    "activityRequired": "يرجى اختيار مستوى النشاط.",
+    "genderRequired": "يرجى اختيار الجنس.",
+    "locationRequired": "يرجى تحديد الموقع."
+  }
+}

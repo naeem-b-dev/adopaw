@@ -32,7 +32,9 @@ export default function PetCard({ pet, onPress }) {
 
   const isMale = pet.gender?.toLowerCase() === "male";
   const genderIcon = isMale ? "male" : "female";
-  const genderColor = isMale ? theme.colors.palette.blue[500] : "#EC4899";
+  const genderColor = isMale
+    ? theme.colors.palette.blue[500]
+    : theme.colors.palette.coral[500];
   const distanceText = pet.distance ?? (typeof pet.distanceKm === "number" ? `${pet.distanceKm} km` : "");
   const headerBg = headerBgByCategory[pet.category] ?? "#F3F4F6";
 
@@ -52,7 +54,7 @@ export default function PetCard({ pet, onPress }) {
       ]}
     >
       <View style={[styles.header, { backgroundColor: headerBg }]}>
-        <Image source={{ uri: pet.image }} style={styles.image} resizeMode="cover" />
+        <Image source={{ uri: pet.images[0] }} style={styles.image} resizeMode="cover" />
       </View>
 
       <View style={styles.content}>

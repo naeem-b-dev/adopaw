@@ -58,7 +58,7 @@ export default function Login() {
     setErrors(newErrors);
 
     if (emailError || passwordError) return;
-    
+
     setLoading(true);
     Keyboard.dismiss();
 
@@ -79,7 +79,6 @@ export default function Login() {
     }
 
     if (data) {
-
       const supaId = data.user.id;
       const accessToken = data.session.access_token;
       try {
@@ -96,11 +95,13 @@ export default function Login() {
         const profileData = response.data;
 
         if (profileData) {
+          const { _id, ...rest } = profileData;
           try {
             await AsyncStorage.setItem(
               "user_profile",
               JSON.stringify(profileData)
             );
+            await AsyncStorage.setItem("p-id", _id.toString());
           } catch (e) {
             // console.log("Failed to save profile:", e);
           }

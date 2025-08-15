@@ -1,0 +1,11 @@
+{
+  "menu": {
+    "profile": "My Profile",
+    "pets": "My Pets",
+    "notifications": "Notifications",
+    "appearance": "App Appearance",
+    "invite": "Invite Friends",
+    "help": "Help Center",
+    "logout": "Log Out"
+  }
+}

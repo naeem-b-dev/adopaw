@@ -11,6 +11,8 @@ import PetsCategories from "../../../src/features/home/components/pets_categorie
 import SearchBar from "../../../src/features/home/components/search_bar";
 import { fonts, fontSizes } from "../../../src/theme/fonts";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
+import { getAuthToken } from "../../../src/shared/services/supabase/getters";
+import axios from "axios";
 
 export default function Chats() {
   const params = useLocalSearchParams(); // { category, age, size, gender, activity, distance }
@@ -41,24 +43,44 @@ export default function Chats() {
     [selectedCategory, params, searchQuery]
   );
 
-  const load = async () => {
-    controllerRef.current?.abort();
-    const ac = new AbortSignal.abort()
-      ? new AbortController()
-      : { signal: undefined };
-    const signal = "signal" in ac ? ac.signal : undefined;
-    controllerRef.current = ac;
-    setLoading(true);
-    setError(null);
-    try {
-      const { items } = await fetchPets(filters, signal);
-      setPets(items);
-    } catch (e) {
-      if (e.name !== "AbortError") setError(String(e.message || e));
-    } finally {
-      setLoading(false);
-    }
-  };
+const load = async () => {
+  controllerRef.current?.abort();
+  const ac = new AbortController();
+  controllerRef.current = ac;
+
+  const signal = ac.signal;
+  setLoading(true);
+  setError(null);
+
+  try {
+    const auth = await getAuthToken();
+
+    const filteredParams = Object.fromEntries(
+      Object.entries(filters).filter(([_, v]) => v !== null && v !== "")
+    );
+
+    const res = await axios.get(
+      `${process.env.EXPO_PUBLIC_BACKEND_API_URL}/pet/`,
+      {
+        headers: {
+          Authorization: `Bearer ${auth}`,
+          "Content-Type": "application/json",
+        },
+        params: filteredParams,
+        signal,
+      }
+    );
+
+    console.log("Pets response:", res.data);
+    setPets(res.data ?? []);
+  } catch (e) {
+    if (axios.isCancel(e) || e.name === "AbortError") return;
+    console.error("Failed to load pets:", e);
+    setError(e.response?.data?.message || e.message || String(e));
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     load();

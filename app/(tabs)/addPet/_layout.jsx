@@ -11,7 +11,7 @@ export default function AddPetStackLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerStyle: {
           backgroundColor: theme.colors.surface,
         },

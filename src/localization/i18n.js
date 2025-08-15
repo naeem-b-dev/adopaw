@@ -6,7 +6,7 @@ const LANGUAGE_PREFERENCE_KEY = "user-language";
 
 i18n.use(initReactI18next).init({
   fallbackLng: "en",
-  lng: "en",
+  lng: "ar",
   ns: [],
   interpolation: { escapeValue: false },
 });

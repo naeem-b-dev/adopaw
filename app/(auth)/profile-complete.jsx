@@ -97,8 +97,8 @@ export default function ProfileCompleteScreen() {
       );
       if (response?.data) {
         const { _id, ...restProfile } = response.data;
-        await AsyncStorage.setItem("profileId", _id.toString());
-        await AsyncStorage.setItem("profile", JSON.stringify(response.data));
+        await AsyncStorage.setItem("p-id", _id.toString());
+        await AsyncStorage.setItem("user-profile", JSON.stringify(response.data));
 
         router.replace("/pet-preferences");
       }
