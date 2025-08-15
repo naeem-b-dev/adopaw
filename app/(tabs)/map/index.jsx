@@ -1,32 +1,52 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Button, Text } from "react-native-paper";
-import { useRouter } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, useTheme } from "react-native-paper";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import MapCanvas from "../../../src/features/map/components/MapCanvas";
+import RecenterButton from "../../../src/features/map/components/RecenterButton";
+import { useCurrentLocation } from "../../../src/features/map/hooks/useCurrentLocation";
 
-export default function Chats() {
-  const router = useRouter();
-
-  const goPet = (name) => {
-    router.push(`/${name}`);
-  };
+export default function MapPage() {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { region, setRegion, loading, error, recenter } = useCurrentLocation();
+  const [q, setQ] = useState("");
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineLarge" style={styles.text}>
-        Map Page
-      </Text>
-      
-    </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={StyleSheet.absoluteFill}>
+        <MapCanvas region={region || undefined} onRegionChange={setRegion} />
+      </View>
+
+      <View style={{ paddingTop: 8, paddingHorizontal: 16 }}>
+        <TextInput
+          mode="outlined"
+          value={q}
+          onChangeText={setQ}
+          placeholder="Search for location"
+          style={{ height: 48, backgroundColor: "#fff" }}
+          outlineStyle={{ borderRadius: 16, borderWidth: 1 }}
+          left={<TextInput.Icon icon="magnify" />}
+          right={<TextInput.Icon icon="close" onPress={() => setQ("")} />}
+        />
+      </View>
+
+      <RecenterButton
+        onPress={recenter}
+        style={{ position: "absolute", right: 16, bottom: 90 + insets.bottom }}
+      />
+
+      {loading && <View style={styles.loader}><ActivityIndicator /></View>}
+      {error ? (
+        <View style={styles.error}>
+          <Text variant="labelMedium" style={{ color: theme.colors.error }}>{error}</Text>
+        </View>
+      ) : null}
+    </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  text: { marginBottom: 24, textAlign: "center" },
-  button: { width: 150 },
+  container: { flex: 1 },
+  loader: { position: "absolute", top: 16, alignSelf: "center" },
+  error: { position: "absolute", top: 70, alignSelf: "center" },
 });

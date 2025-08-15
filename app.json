@@ -13,6 +13,7 @@
     "scheme": "adopawapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -20,18 +21,24 @@
       }
     },
     "android": {
+      "googleMaps": {
+        "apiKey": "AIzaSyBvOALgoMksIrhAm8A_cCIedE0qR4RKjx8"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.tashgheel.adopaw"
+      "package": "com.tashgheel.adopaw",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./src/assets/images/favicon.png"
     },
+
     "extra": {
       "supportsRTL": true,
       "forcesRTL": false,
@@ -40,6 +47,7 @@
         "projectId": "8d28a45d-5243-4826-be24-e879104f52d3"
       }
     },
+    
     "plugins": [
       "expo-router",
       "expo-localization",
@@ -53,6 +61,7 @@
         }
       ]
     ],
+
     "experiments": {
       "typedRoutes": true
     }
