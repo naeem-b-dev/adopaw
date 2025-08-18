@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ActivityIndicator, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import MapCanvas from "../../../src/features/map/components/MapCanvas";
 import RecenterButton from "../../../src/features/map/components/RecenterButton";
+import places from "../../../src/features/map/data/places.json";
 import { useCurrentLocation } from "../../../src/features/map/hooks/useCurrentLocation";
 
 export default function MapPage() {
@@ -11,11 +12,20 @@ export default function MapPage() {
   const insets = useSafeAreaInsets();
   const { region, setRegion, loading, error, recenter } = useCurrentLocation();
   const [q, setQ] = useState("");
+  const filteredMarkers = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (!query) return places;
+    return places.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      (p.description?.toLowerCase().includes(query)) ||
+      (p.category?.toLowerCase().includes(query))
+    );
+  }, [q]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={StyleSheet.absoluteFill}>
-        <MapCanvas region={region || undefined} onRegionChange={setRegion} />
+        <MapCanvas region={region || undefined} onRegionChange={setRegion} markers={filteredMarkers} />
       </View>
 
       <View style={{ paddingTop: 8, paddingHorizontal: 16 }}>
@@ -23,7 +33,7 @@ export default function MapPage() {
           mode="outlined"
           value={q}
           onChangeText={setQ}
-          placeholder="Search for location"
+          placeholder="Search places"
           style={{ height: 48, backgroundColor: "#fff" }}
           outlineStyle={{ borderRadius: 16, borderWidth: 1 }}
           left={<TextInput.Icon icon="magnify" />}

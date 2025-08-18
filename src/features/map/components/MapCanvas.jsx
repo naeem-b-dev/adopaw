@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import { Platform, StyleSheet } from "react-native";
+import MapView, { Callout, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 const FALLBACK = {
   latitude: 33.8938,
@@ -8,17 +8,32 @@ const FALLBACK = {
   longitudeDelta: 0.05,
 };
 
-export default function MapCanvas({ region, onRegionChange }) {
+export default function MapCanvas({ region, onRegionChange, markers = [] }) {
   return (
     <MapView
       style={styles.map}
-      provider={PROVIDER_GOOGLE}
+      {...(Platform.OS === "android" ? { provider: PROVIDER_GOOGLE } : {})}
       initialRegion={FALLBACK}
       {...(region ? { region } : {})}
       onRegionChangeComplete={onRegionChange}
       showsUserLocation
       moveOnMarkerPress={false}
-    />
+    >
+      {markers.map((m) => (
+        <Marker
+          key={m.id}
+          coordinate={{ latitude: m.latitude, longitude: m.longitude }}
+          title={m.name}
+          description={m.description}
+        >
+          <Callout>
+            <>
+              {/* Minimal callout; can be customized later */}
+            </>
+          </Callout>
+        </Marker>
+      ))}
+    </MapView>
   );
 }
 const styles = StyleSheet.create({ map: { flex: 1 } });
