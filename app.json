@@ -21,11 +21,6 @@
       }
     },
     "android": {
-      "config":{
-        "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
-        }
-      },
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -43,7 +38,7 @@
 
     "extra": {
       "supportsRTL": true,
-      "forcesRTL": true,
+      "forcesRTL": false,
       "router": {},
       "eas": {
         "projectId": "8d28a45d-5243-4826-be24-e879104f52d3"
