@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ORDER = ["home", "map", "chats", "profile"];
 
-const BAR_HEIGHT = 70;
 const ICON_SIZE = 28; // closer to Figma
 const FAB_SIZE = 70;
 const FAB_ICON = 45;
@@ -135,24 +134,19 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             );
           })}
         </View>
+      </View>
 
-        {/* centered FAB (rounded +) */}
+      {/* centered FAB (rounded +), anchored to container bottom and RTL-safe */}
+      <View style={[styles.fabOverlay, { bottom: Math.max(insets.bottom, 8) + 24 }]} pointerEvents="box-none">
         <TouchableOpacity
           activeOpacity={0.95}
           onPress={() => router.push("/(tabs)/addPet")}
-          style={[
-            styles.fab,
-            {
-              top: -FAB_SIZE / 4,
-              left: "54%",
-              transform: [{ translateX: -FAB_SIZE / 3 }],
-            },
-          ]}
+          style={styles.fab}
         >
           <LinearGradient
             colors={[theme.colors.primary, theme.colors.palette.blue[400]]}
             start={{ x: 0.5, y: 0.0 }}
-            end={{ x: 0.5, y: 1.0 }} // lighter at bottom
+            end={{ x: 0.5, y: 1.0 }}
             style={styles.fabCircle}
           >
             <MaterialIcons name="add" size={FAB_ICON} color="#fff" />
@@ -185,10 +179,15 @@ const styles = StyleSheet.create({
       android: { elevation: 8 },
     }),
   },
+  fabOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
   side: { flexDirection: "row", alignItems: "center" },
   tab: { width: 76, alignItems: "center", justifyContent: "center" },
   fab: {
-    position: "absolute",
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,

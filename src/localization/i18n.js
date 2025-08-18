@@ -1,12 +1,12 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LANGUAGE_PREFERENCE_KEY = "user-language";
 
 i18n.use(initReactI18next).init({
   fallbackLng: "en",
-  lng: "en",
+  lng: "ar",
   ns: [],
   interpolation: { escapeValue: false },
 });
