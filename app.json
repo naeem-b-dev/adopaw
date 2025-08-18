@@ -21,8 +21,10 @@
       }
     },
     "android": {
-      "googleMaps": {
-        "apiKey": "AIzaSyBvOALgoMksIrhAm8A_cCIedE0qR4RKjx8"
+      "config":{
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
       },
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
