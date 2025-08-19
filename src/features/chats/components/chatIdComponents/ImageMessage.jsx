@@ -1,49 +1,56 @@
 // src/features/chats/components/chatIdComponents/ImageMessage.jsx
-import { selectUserId } from "@/src/features/auth/store/authSlice";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import { useSelector } from "react-redux";
 
-export default function ImageMessage({ item }) {
+export default function ImageMessage({ item, currentUserId, imageSource, label, timestamp }) {
   const theme = useTheme();
-  const me = useSelector(selectUserId);
-  const isMine = item?.senderId === me;
+  const { palette } = theme.colors;
 
-  const uri = item?.content?.imageUrl || "";
-  if (!uri) return null;
+  // Support both old props (imageSource/label/timestamp) and new `item`
+  const isFromItem = !!item;
+  const senderId = isFromItem ? item?.senderId : currentUserId; // default to current user if not provided
+  const isMine = isFromItem ? item?.senderId === currentUserId : true;
 
-  const labelColor = theme.colors.onSurface;
-  const timestampColor = theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
+  const uri =
+    isFromItem ? item?.content?.imageUrl : imageSource;
+  const name =
+    isFromItem ? item?.content?.label || label : label;
+  const createdAt =
+    isFromItem ? item?.createdAt : timestamp;
 
   const timeLabel = useMemo(() => {
-    if (!item?.createdAt) return "";
+    if (!createdAt) return "";
     try {
-      const d = new Date(item.createdAt);
+      const d = new Date(createdAt);
       return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
     } catch {
       return "";
     }
-  }, [item?.createdAt]);
+  }, [createdAt]);
 
-  const label = item?.content?.label ?? ""; // optional label if your backend provides it
+  const bubbleBg = isMine ? palette.blue[400] : theme.colors.surface;
+  const textColor = isMine ? theme.colors.onPrimary : theme.colors.onSurface;
+  const tsColor = isMine ? theme.colors.onPrimary : theme.colors.onSurfaceVariant || theme.colors.onSurface;
 
   return (
     <View
       style={[
         styles.imageContainer,
         {
-          backgroundColor: theme.colors.surface,
+          backgroundColor: bubbleBg,
           alignSelf: isMine ? "flex-end" : "flex-start",
         },
       ]}
     >
-      <Image source={{ uri }} style={styles.petImage} />
+      {/* Keep old UI: image + label row */}
+      {uri ? (
+        <Image source={typeof uri === "string" ? { uri } : uri} style={styles.petImage} />
+      ) : null}
+
       <View style={styles.labelRow}>
-        {!!label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
-        {!!timeLabel && (
-          <Text style={[styles.timestamp, { color: timestampColor }]}>{timeLabel}</Text>
-        )}
+        {!!name && <Text style={[styles.label, { color: textColor }]}>{name}</Text>}
+        {!!timeLabel && <Text style={[styles.timestamp, { color: tsColor }]}>{timeLabel}</Text>}
       </View>
     </View>
   );
@@ -54,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginBottom: 10,
-    maxWidth: "85%",
+    maxWidth: "80%",
   },
   petImage: {
     width: 140,

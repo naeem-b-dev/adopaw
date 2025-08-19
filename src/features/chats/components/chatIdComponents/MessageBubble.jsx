@@ -1,67 +1,79 @@
-// src/features/chats/components/chatIdComponents/MessageBubble.jsx
 import { selectUserId } from "@/src/features/auth/store/authSlice";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Surface, Text, useTheme } from "react-native-paper";
 import { useSelector } from "react-redux";
 
-export default function MessageBubble({ item }) {
+export default function MessageBubble({ item, currentUserId }) {
   const theme = useTheme();
-  const me = useSelector(selectUserId);
-  const isMine = item?.senderId === me;
+  const reduxUserId = useSelector(selectUserId);
+  const myId = currentUserId ?? reduxUserId;
+  const isMine = item?.senderId === myId;
+
   const { palette } = theme.colors;
+  const bgMine = palette?.blue?.[400] ?? theme.colors.primary;
+  const bgOther = theme.colors.surface;
+  const fgMine = theme.colors.onPrimary;
+  const fgOther = theme.colors.onSurface;
+  const tsColor = palette?.neutral?.[500] ?? theme.colors.outline;
 
   const timeLabel = useMemo(() => {
-    if (!item?.createdAt) return "";
+    const ts = item?.createdAt || item?.timestamp;
+    if (!ts) return "";
     try {
-      const d = new Date(item.createdAt);
+      const d = new Date(ts);
       return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
     } catch {
       return "";
     }
-  }, [item?.createdAt]);
-
-  const bg = isMine ? theme.colors.primary : theme.colors.surface;
-  const fg = isMine ? theme.colors.onPrimary : theme.colors.onSurface;
-  const ts = palette?.neutral?.[500] || theme.colors.outline;
+  }, [item?.createdAt, item?.timestamp]);
 
   return (
-    <View
-      style={[
-        styles.row,
-        { justifyContent: isMine ? "flex-end" : "flex-start" },
-      ]}
-    >
+    <View style={[styles.row, { justifyContent: isMine ? "flex-end" : "flex-start" }]}>
       <Surface
-        elevation={1}
+        elevation={0} // flatter look; prevents “double” visual
         style={[
           styles.bubble,
-          {
-            backgroundColor: isMine ? bg : bg, // bg set above
-            maxWidth: "85%",
-          },
+          isMine ? styles.bubbleMine : styles.bubbleOther,
+          { backgroundColor: isMine ? bgMine : bgOther },
         ]}
       >
-        <Text style={[styles.text, { color: fg }]} variant="bodyMedium">
-          {item?.content?.text ?? ""}
-        </Text>
+        {!!item?.content?.text && (
+          <Text style={[styles.text, { color: isMine ? fgMine : fgOther }]} variant="bodyMedium">
+            {item.content.text}
+          </Text>
+        )}
         {!!timeLabel && (
-          <Text style={[styles.time, { color: ts }]}>{timeLabel}</Text>
+          <Text style={[styles.time, { color: isMine ? fgMine : tsColor }]}>{timeLabel}</Text>
         )}
       </Surface>
     </View>
   );
 }
 
+const R = 16; // base radius
 const styles = StyleSheet.create({
   row: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     flexDirection: "row",
   },
   bubble: {
-    padding: 10,
-    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    maxWidth: "85%",
+  },
+  bubbleMine: {
+    borderTopLeftRadius: R,
+    borderTopRightRadius: R,
+    borderBottomLeftRadius: R,
+    borderBottomRightRadius: 6, // slightly sharper tail side
+  },
+  bubbleOther: {
+    borderTopLeftRadius: R,
+    borderTopRightRadius: R,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: R,
   },
   text: {
     fontFamily: "Alexandria_400Regular",

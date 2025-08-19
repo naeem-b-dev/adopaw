@@ -1,26 +1,29 @@
+// src/features/chats/components/ChatListComponent/ChatList.jsx
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { List, Text } from "react-native-paper";
 
 import AiAssistantCard from "./AiAssistantCard";
 import ChatCard from "./ChatCardTemp";
 
-export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySubtitle, photoLabel }) {
+// Optional avatar image for Pawlo (remove if your AiAssistantCard has a default)
+import pawloImage from "@/assets/images/itspawlo.png";
+
+export default function ChatList({
+  chats = [],
+  onPressChat,
+  emptyTitle,
+  emptySubtitle,
+  photoLabel,
+}) {
   const router = useRouter();
   const { t } = useTranslationLoader("chatlist");
 
   useEffect(() => {
     // console.log("✅ ChatList mounted");
   }, []);
-
-  const pawloItem = useMemo(() => chats.find((c) => c?.id === "pawlo" || c?._id === "pawlo"), [chats]);
-
-  const otherChats = useMemo(
-    () => chats.filter((c) => !(c?.id === "pawlo" || c?._id === "pawlo")),
-    [chats]
-  );
 
   const toPreview = useCallback(
     (chat) => {
@@ -38,7 +41,6 @@ export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySub
     if (!iso) return "";
     try {
       const d = new Date(iso);
-      // Simple readable time; you can swap to relative later
       return d.toLocaleString();
     } catch {
       return "";
@@ -58,7 +60,7 @@ export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySub
 
   const renderChatItem = ({ item }) => {
     const chatId = item?._id || item?.id;
-    const name = item?.name || t("chatWith", { count: 1 }); // replace with real name when available
+    const name = item?.name || t("chatWith", { count: 1 });
     const message = item?.message ?? toPreview(item);
     const timestamp = item?.timestamp ?? toTimestamp(item);
     const unreadCount = item?.unreadCount ?? 0;
@@ -66,7 +68,7 @@ export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySub
     return (
       <ChatCard
         key={chatId}
-        avatar={item?.avatar} // your card can decide placeholder if undefined
+        avatar={item?.avatar}
         name={name}
         message={message}
         timestamp={timestamp}
@@ -76,37 +78,32 @@ export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySub
     );
   };
 
-  const isEmpty = (!otherChats || otherChats.length === 0) && !pawloItem;
-
-  if (isEmpty) {
-    return (
-      <View style={styles.emptyWrap}>
-        <List.Icon icon="chat-outline" />
-        <Text variant="titleMedium">{emptyTitle || t("emptyTitle")}</Text>
-        <Text variant="bodyMedium" style={styles.emptySub}>
-          {emptySubtitle || t("emptySubtitle")}
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <FlatList
       contentContainerStyle={styles.listContent}
-      data={otherChats}
+      data={chats}
       keyExtractor={(item) => String(item?._id || item?.id)}
       renderItem={renderChatItem}
+      // Always show Pawlo at the top
       ListHeaderComponent={
-        pawloItem ? (
-          <View style={styles.headerWrap}>
-            <AiAssistantCard
-              avatar={pawloItem.avatar}
-              name={t("pawloName")}
-              message={t("pawloSubtitle")}
-              onPress={() => goToChat(pawloItem._id || pawloItem.id, t("pawloName"))}
-            />
-          </View>
-        ) : null
+        <View style={styles.headerWrap}>
+          <AiAssistantCard
+            avatar={pawloImage}
+            name={t("pawloName")}
+            message={t("pawloSubtitle")}
+            onPress={() => router.push("/chats/pawlo")}
+          />
+        </View>
+      }
+      // Empty state still shows (under the Pawlo card)
+      ListEmptyComponent={
+        <View style={styles.emptyWrap}>
+          <List.Icon icon="chat-outline" />
+          <Text variant="titleMedium">{emptyTitle || t("emptyTitle")}</Text>
+          <Text variant="bodyMedium" style={styles.emptySub}>
+            {emptySubtitle || t("emptySubtitle")}
+          </Text>
+        </View>
       }
       initialNumToRender={12}
       windowSize={10}

@@ -1,7 +1,9 @@
-// src/features/chats/components/pawlo/ChatInput.jsx
-import { Entypo, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -9,23 +11,26 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import EmojiSelector, { Categories } from "react-native-emoji-selector";
+
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { sendMessage, setTyping } from "@/src/shared/services/chatService";
-import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
-
-// Redux
 import { selectJwt } from "@/src/features/auth/store/authSlice";
+import { sendMessage, setTyping } from "@/src/shared/services/chatService";
 import { useSelector } from "react-redux";
 
-export default function ChatInput({ chatId }) {
-  const { t } = useTranslationLoader("chatId");
+export default function ChatInput({
+  chatId,
+  onSend,
+  onSendImage,
+}) {
   const [message, setMessage] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [pendingImage, setPendingImage] = useState(null);
+
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-
-  // Build getToken() the service expects
   const jwt = useSelector(selectJwt);
   const getToken = useCallback(async () => jwt || "", [jwt]);
 
@@ -49,7 +54,7 @@ export default function ChatInput({ chatId }) {
   const isMessageNotEmpty = message.trim().length > 0;
   const typingTimerRef = useRef(null);
 
-  // Typing debounce
+  // Typing (only for DM rooms)
   useEffect(() => {
     if (!chatId) return;
     if (isMessageNotEmpty) {
@@ -66,17 +71,70 @@ export default function ChatInput({ chatId }) {
 
   const handleSend = async () => {
     const trimmed = message.trim();
-    if (!trimmed || !chatId) return;
+    const hasImage = !!pendingImage;
+    if (!trimmed && !hasImage) return;
 
-    // Optimistic clear (screen subscribes to live updates)
-    setMessage("");
+    setShowEmoji(false);
+
     try {
-      await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
-    } catch {
-      // Optional: show a toast/snackbar and reinsert text if you want rollback
-      // setMessage(trimmed);
+      if (chatId) {
+        // DM room: send to your backend as before
+        if (hasImage) {
+          await sendMessage(chatId, { type: "image", content: { imageUrl: pendingImage } }, getToken);
+        }
+        if (trimmed) {
+          await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
+        }
+      } else if (onSend) {
+        // Pawlo flow: send BOTH in one call
+        await onSend(trimmed, { localImages: hasImage ? [pendingImage] : [] });
+      }
+    } catch (err) {
+      console.warn("Send failed:", err?.message || err);
+    } finally {
+      setMessage("");
+      setPendingImage(null);
     }
   };
+
+  const toggleEmoji = () => {
+    if (!showEmoji) Keyboard.dismiss();
+    setShowEmoji((v) => !v);
+  };
+
+  const onEmojiSelected = (emoji) => setMessage((prev) => `${prev}${emoji}`);
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") return;
+
+      // ✅ Compatible with old/new expo-image-picker
+      const imageEnum =
+        ImagePicker?.MediaType?.Images ?? ImagePicker?.MediaTypeOptions?.Images;
+
+      const options = {
+        allowsMultipleSelection: false,
+        quality: 0.8,
+        ...(imageEnum ? { mediaTypes: imageEnum } : {}), // omit if enum missing
+      };
+
+      const result = await ImagePicker.launchImageLibraryAsync(options);
+      if (result.canceled) return;
+
+      const uri = result.assets?.[0]?.uri;
+      if (!uri) return;
+
+      setShowEmoji(false);
+      setPendingImage(uri); // attach only; send happens when user taps Send
+    } catch (err) {
+      console.warn("Pick image failed:", err?.message || err);
+    }
+  };
+
+  const removePendingImage = () => setPendingImage(null);
+
+  const canSend = isMessageNotEmpty || !!pendingImage;
 
   return (
     <KeyboardAvoidingView
@@ -94,40 +152,60 @@ export default function ChatInput({ chatId }) {
       >
         {/* Input pill */}
         <View style={[styles.inputPill, { backgroundColor: inputBg }]}>
-          <TouchableOpacity style={styles.leadingIcon}>
+          {/* Emoji toggle */}
+          <TouchableOpacity style={styles.leadingIcon} onPress={toggleEmoji}>
             <Ionicons name="happy-outline" size={22} color={iconGray} />
           </TouchableOpacity>
 
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={t("inputPlaceholder")}
+            placeholder="Message..."
             placeholderTextColor={inputPlaceholder}
             style={[styles.input, { color: textColor }]}
             multiline
+            onFocus={() => setShowEmoji(false)}
           />
 
-          <TouchableOpacity style={styles.trailingIcon}>
-            <Entypo name="attachment" size={20} color={iconGray} />
+          {/* Attached image preview (chip) */}
+          {pendingImage ? (
+            <View style={styles.thumbWrap}>
+              <Image source={{ uri: pendingImage }} style={styles.thumb} />
+              <TouchableOpacity style={styles.thumbRemove} onPress={removePendingImage}>
+                <Ionicons name="close" size={14} color={sendIdleFg} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
+          {/* Image picker */}
+          <TouchableOpacity style={styles.trailingIcon} onPress={handlePickImage}>
+            <Ionicons name="image-outline" size={22} color={iconGray} />
           </TouchableOpacity>
         </View>
 
         {/* Send button */}
         <TouchableOpacity
           onPress={handleSend}
-          disabled={!isMessageNotEmpty}
-          style={[
-            styles.sendButton,
-            { backgroundColor: isMessageNotEmpty ? sendActiveBg : sendIdleBg },
-          ]}
+          disabled={!canSend}
+          style={[styles.sendButton, { backgroundColor: canSend ? sendActiveBg : sendIdleBg }]}
         >
-          <Ionicons
-            name="send"
-            size={18}
-            color={isMessageNotEmpty ? sendActiveFg : sendIdleFg}
-          />
+          <Ionicons name="send" size={18} color={canSend ? sendActiveFg : sendIdleFg} />
         </TouchableOpacity>
       </View>
+
+      {/* Emoji panel */}
+      {showEmoji ? (
+        <View style={{ height: 280 }}>
+          <EmojiSelector
+            onEmojiSelected={onEmojiSelected}
+            showSearchBar={false}
+            showTabs
+            showHistory
+            category={Categories.all}
+            columns={8}
+          />
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -164,5 +242,20 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+  },
+  thumbWrap: {
+    marginLeft: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 6,
+    overflow: "hidden",
+    position: "relative",
+  },
+  thumb: { width: "100%", height: "100%" },
+  thumbRemove: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    padding: 6,
   },
 });

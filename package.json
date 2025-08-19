@@ -20,7 +20,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@reduxjs/toolkit": "^2.8.2",
-    "@supabase/supabase-js": "^2.53.0",
+    "@supabase/supabase-js": "^2.55.0",
     "axios": "^1.11.0",
     "expo": "~53.0.20",
     "expo-auth-session": "~6.2.1",
@@ -48,6 +48,7 @@
     "react-dom": "19.0.0",
     "react-i18next": "^15.6.1",
     "react-native": "0.79.5",
+    "react-native-emoji-selector": "^0.2.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-maps": "1.20.1",
     "react-native-modal": "^14.0.0-rc.1",
@@ -56,10 +57,12 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-url-polyfill": "^2.0.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "react-redux": "^9.2.0",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "expo-image-manipulator": "~13.1.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
