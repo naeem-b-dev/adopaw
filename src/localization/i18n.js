@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { I18nManager } from "react-native";
@@ -11,7 +10,7 @@ const RTL_LANGUAGES = ["ar", "he", "fa", "ur"]; // Add more if needed
 
 i18n.use(initReactI18next).init({
   fallbackLng: "en",
-  lng: "en",
+  lng: "ar",
   ns: [],
   interpolation: { escapeValue: false },
 });

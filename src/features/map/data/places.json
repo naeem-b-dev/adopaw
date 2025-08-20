@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "name": "Happy Paws Shelter",
+    "description": "A friendly shelter with many adoptable pets",
+    "latitude": 33.8944,
+    "longitude": 35.5018,
+    "category": "shelter"
+  },
+  {
+    "id": "2",
+    "name": "Downtown Vet Clinic",
+    "description": "24/7 veterinary services",
+    "latitude": 33.8898,
+    "longitude": 35.5055,
+    "category": "clinic"
+  },
+  {
+    "id": "3",
+    "name": "Green Park Dog Area",
+    "description": "Off-leash area for dogs",
+    "latitude": 33.8971,
+    "longitude": 35.4972,
+    "category": "park"
+  }
+]
+
+
