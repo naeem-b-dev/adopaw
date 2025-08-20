@@ -6,32 +6,44 @@ export default function AppButton({
   onPress,
   variant = "primary",
   loading,
+  disabled,
   style,
 }) {
-  const { colors, fonts } = useTheme();
+  const { colors, fonts, dark } = useTheme();
 
   const isPrimary = variant === "primary";
+  const isDisabled = disabled || loading;
 
-  const backgroundColor = isPrimary
-    ? colors.palette.coral[500]
-    : colors.palette.blue[100];
+  const backgroundColor = isDisabled
+    ? dark
+      ? colors.palette.neutral[700]
+      : colors.palette.neutral[300]
+    : isPrimary
+      ? colors.palette.coral[500]
+      : colors.palette.blue[100];
 
-  const borderColor = isPrimary ? "transparent" : colors.palette.blue[500];
-  const textColor = isPrimary ? "#fff" : colors.palette.blue[500];
+  const textColor = isDisabled
+    ? colors.palette.neutral[500] // fallback for disabled text
+    : isPrimary
+      ? "#fff"
+      : colors.palette.blue[500];
+
+  const borderColor =
+    isPrimary || isDisabled ? "transparent" : colors.palette.blue[500];
 
   return (
     <Button
       mode="contained"
       onPress={onPress}
       loading={loading}
-      disabled={loading}
+      disabled={isDisabled}
       contentStyle={styles.buttonContent}
       style={[
         styles.button,
         {
           backgroundColor,
           borderColor,
-          borderWidth: isPrimary ? 0 : 1,
+          borderWidth: isPrimary || isDisabled ? 0 : 1,
         },
         style,
       ]}

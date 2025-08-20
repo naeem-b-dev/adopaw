@@ -11,7 +11,7 @@ import * as Location from "expo-location";
 
 import { useTranslationLoader } from "../../../../localization/hooks/useTranslationLoader";
 
-export default function LocationInput({ onPress, error, errorMessage }) {
+export default function MapPicker({ onPress, error, errorMessage }) {
   const [displayAddress, setDisplayAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();

@@ -7,5 +7,67 @@
     "invite": "Invite Friends",
     "help": "Help Center",
     "logout": "Log Out"
+  },
+  "profilePreview": {
+    "title": "Profile",
+    "bio": {
+      "label": "Bio",
+      "placeholder": "Bio, e. g..."
+    },
+    "uploadButton": "Upload Picture",
+    "name": {
+      "label": "Full Name",
+      "placeholder": "Enter your Name"
+    },
+    "location": {
+      "label": "Your Location",
+      "placeholder": "Get My Current Location"
+    },
+    "phone": "Phone Number",
+    "submit": "Save Profile"
+  },
+  "myPets": {
+    "title": "My Pets",
+    "empty": {
+      "title": "No Pets Added Yet",
+      "description": "You haven’t added any pets for adoption. Start by sharing details about your pet to help them find a loving home."
+    }
+  },
+  "appearance": {
+    "title": "App Appearance",
+    "theme": {
+      "label": "Theme",
+      "options": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      }
+    },
+    "language": {
+      "label": "Language",
+      "options": {
+        "en": "English",
+        "ar": "Arabic"
+      }
+    }
+  },
+  "error": {
+    "title": "Error"
+  },
+  "language": {
+    "change": {
+      "title": "Language Changed",
+      "message": "Language changed to {{language}}. The app will reload to apply {{direction}} layout.",
+      "error": "Failed to change language. Please try again."
+    }
+  },
+  "logoutConfirmation": {
+    "title": "Confirm Logout",
+    "message": "Are you sure you want to log out?"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   }
 }

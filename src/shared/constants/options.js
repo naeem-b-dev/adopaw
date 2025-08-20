@@ -15,13 +15,13 @@ export const profileMenuOptions = [
     onPress: () => console.log("Go to My Pets"),
     route: "/(tabs)/profile/user-pets",
   },
-  {
-    id: "3",
-    titleKey: "notifications",
-    iconName: "notifications-outline", // Ionicons icon name
-    onPress: () => console.log("Go to Notifications"),
-    route: "/(tabs)/profile/notifications",
-  },
+  // {
+  //   id: "3",
+  //   titleKey: "notifications",
+  //   iconName: "notifications-outline", // Ionicons icon name
+  //   onPress: () => console.log("Go to Notifications"),
+  //   route: "/(tabs)/profile/notifications",
+  // },
   {
     id: "4",
     titleKey: "appearance",

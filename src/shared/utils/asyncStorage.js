@@ -8,4 +8,3 @@ export const clearAllKeys = async () => {
     console.error("Error clearing keys from AsyncStorage: ", error);
   }
 };
-

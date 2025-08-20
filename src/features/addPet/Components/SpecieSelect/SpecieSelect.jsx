@@ -9,11 +9,12 @@ export default function SpecieSelect({ value, onChange }) {
   const { colors } = useTheme();
   const { t } = useTranslationLoader(["common", "addPet"]);
 
+
   return (
     <SelectDropdown
       data={animalOptions}
       onSelect={(selectedItem) => onChange(selectedItem.value)}
-      //   defaultValue={animalOptions.find((a) => a.value === value)}
+        defaultValue={animalOptions.find((a) => a.value === value)}
       renderButton={(selectedItem, isOpened) => (
         <View
           style={[

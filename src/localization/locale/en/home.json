@@ -25,6 +25,11 @@
   "category.cat": "Cats",
   "category.bird": "Birds",
   "category.rabbit": "Rabbits",
-  "category.other": "Other"
-
+  "category.other": "Other",
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "chats": "Chats",
+    "profile": "Profile"
+  }
 }

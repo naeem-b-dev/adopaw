@@ -10,6 +10,7 @@ export default function AppInput({
   isPassword = false,
   style,
   max,
+  disabled = false,
   keyboardType,
   error = false,
   errorMessage = "",
@@ -47,6 +48,7 @@ export default function AppInput({
         onBlur={onBlur}
         maxLength={max}
         keyboardType={keyboardType}
+        disabled={disabled}
         placeholder={placeholder}
         multiline={multiline}
         secureTextEntry={isPassword ? secure : false}

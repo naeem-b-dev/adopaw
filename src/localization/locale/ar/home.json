@@ -25,5 +25,11 @@
   "category.cat": "قطط",
   "category.bird": "طيور",
   "category.rabbit": "أرانب",
-  "category.other": "أخرى"
+  "category.other": "أخرى",
+  "tabs": {
+    "home": "الرئيسية",
+    "map": "الخريطة",
+    "chats": "المحادثات",
+    "profile": "حسابي"
+  }
 }

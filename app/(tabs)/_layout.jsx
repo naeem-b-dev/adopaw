@@ -7,12 +7,15 @@ export default function TabsLayout() {
   const shouldHideTabBar =
     segments[1] === "addPet" ||
     (segments[1] === "home" && segments[2]) ||
-    (segments[1] === "chats" && segments[2] && segments[2] !== "index");
+    (segments[1] === "chats" && segments[2] && segments[2] !== "index") ||
+    (segments[1] === "profile" && segments[2] && segments[2] !== "index");
 
   return (
     <Tabs
       screenOptions={{ headerShown: false, tabBarStyle: { display: "none" } }}
-      tabBar={(props) => (shouldHideTabBar ? null : <CustomTabBar {...props} />)}
+      tabBar={(props) =>
+        shouldHideTabBar ? null : <CustomTabBar {...props} />
+      }
     >
       <Tabs.Screen name="home" options={{ title: "Home" }} />
       <Tabs.Screen name="map" options={{ title: "Map" }} />

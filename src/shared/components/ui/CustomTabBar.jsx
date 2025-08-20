@@ -1,8 +1,15 @@
+import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"; // tabs
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  I18nManager,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,6 +41,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { t } = useTranslationLoader("home");
+
   const routes = ORDER.map((n) =>
     state.routes.find((r) => r.name === n)
   ).filter(Boolean);
@@ -57,7 +66,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
         <View style={styles.side}>
           {left.map((route) => {
             const focused = isFocused(route);
-            const label = descriptors[route.key]?.options?.title ?? route.name;
+            const label = t(`tabs.${route.name}`) ?? route.name;
             return (
               <TouchableOpacity
                 key={route.key}
@@ -100,7 +109,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
         <View style={styles.side}>
           {right.map((route) => {
             const focused = isFocused(route);
-            const label = descriptors[route.key]?.options?.title ?? route.name;
+            const label = t(`tabs.${route.name}`) ?? route.name;
             return (
               <TouchableOpacity
                 key={route.key}
@@ -144,7 +153,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             styles.fab,
             {
               top: -FAB_SIZE / 4,
-              left: "54%",
+              [I18nManager.isRTL ? "right" : "left"]: "54%",
               transform: [{ translateX: -FAB_SIZE / 3 }],
             },
           ]}
@@ -182,7 +191,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         shadowOffset: { width: 0, height: -2 },
       },
-      android: { elevation: 8 },
     }),
   },
   side: { flexDirection: "row", alignItems: "center" },

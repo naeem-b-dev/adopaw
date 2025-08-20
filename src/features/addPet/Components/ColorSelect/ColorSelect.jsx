@@ -7,11 +7,10 @@ import {
   FlatList,
 } from "react-native";
 import { useTheme, Text, Button } from "react-native-paper";
-import { useTranslation } from "react-i18next";
 import { animalsColors } from "../../../../shared/constants/prefs";
 import { useTranslationLoader } from "../../../../localization/hooks/useTranslationLoader";
 
-export default function ColorSelectMulti({ value = [], onChange }) {
+export default function ColorSelect({ value = [], onChange }) {
   const { colors } = useTheme();
   const { t } = useTranslationLoader(["common", "addPet"]);
   const [selectedColors, setSelectedColors] = useState(value);

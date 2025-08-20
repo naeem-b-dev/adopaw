@@ -20,5 +20,5 @@
     "app/(tabs)/explore.jsx",
     "app/(tabs)/index.jsx",
     "src/theme/customTheme.d.ts"
-, "app/(tabs)/home/[petId].jsx", "src/features/pets/Components/PetDetails/AboutText.jsx", "src/features/pets/Components/PetDetails/HeroImage.jsx", "src/features/pets/Components/PetDetails/PetChips.jsx", "src/features/pets/Components/PetDetails/PetHeader.jsx", "src/features/pets/Components/PetDetails/PostedByCard.jsx", "src/features/pets/Components/PetDetails/StatCards.jsx"  ]
+, "app/(tabs)/home/[petId].jsx", "src/features/pets/Components/PetDetails/AboutText.jsx", "src/features/pets/Components/PetDetails/HeroImage.jsx", "src/features/pets/Components/PetDetails/PetChips.jsx", "src/features/pets/Components/PetDetails/PetHeader.jsx", "src/features/pets/Components/PetDetails/PostedByCard.jsx", "src/features/pets/Components/PetDetails/StatCards.jsx", "src/shared/constants/languages.js"  ]
 }

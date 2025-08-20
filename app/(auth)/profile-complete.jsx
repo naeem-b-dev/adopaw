@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Avatar, useTheme } from "react-native-paper";
 import LocationInput from "../../src/features/auth/components/LocationInput/LocationInput";
 import { useTranslationLoader } from "../../src/localization/hooks/useTranslationLoader";
@@ -98,7 +98,10 @@ export default function ProfileCompleteScreen() {
       if (response?.data) {
         const { _id, ...restProfile } = response.data;
         await AsyncStorage.setItem("p-id", _id.toString());
-        await AsyncStorage.setItem("user-profile", JSON.stringify(response.data));
+        await AsyncStorage.setItem(
+          "user-profile",
+          JSON.stringify(response.data)
+        );
 
         router.replace("/pet-preferences");
       }
@@ -112,7 +115,7 @@ export default function ProfileCompleteScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.surface }]}>
       <LoadingModal loading={loading} />
       <Heading
         title={t("profile-c.title")}
@@ -162,13 +165,15 @@ export default function ProfileCompleteScreen() {
         />
       </View>
 
-      <AppButton
-        text={t("profile-c.submit")}
-        onPress={handleSubmit}
-        disabled={loading} // Disable the button while loading
-        style={styles.submitButton}
-      />
-    </View>
+      <View style={{ marginBottom: 20 }}>
+        <AppButton
+          text={t("profile-c.submit")}
+          onPress={handleSubmit}
+          disabled={loading} // Disable the button while loading
+          style={styles.submitButton}
+        />
+      </View>
+    </ScrollView>
   );
 }
 

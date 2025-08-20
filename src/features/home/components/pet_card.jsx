@@ -1,15 +1,20 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Text, useTheme } from "react-native-paper";
+import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 
 // "2y" -> "2 years old", "1y" -> "1 year old", "6m" -> "6 months old"
-const formatAge = (age) => {
-  if (!age) return "";
-  const s = String(age).trim().toLowerCase();
-  const n = parseInt(s.replace(/[^0-9]/g, ""), 10);
-  if (Number.isNaN(n)) return String(age);
-  if (s.includes("m")) return `${n} month${n === 1 ? "" : "s"} old`;
-  return `${n} year${n === 1 ? "" : "s"} old`;
+const formatAge = (age, t) => {
+  if (!age || typeof age !== "object") return "";
+  const { value, unit } = age;
+  if (!value || !unit) return "";
+
+  const isMonth = unit.toLowerCase().includes("month");
+  const count = Number(value);
+
+  if (isNaN(count)) return "";
+
+  return isMonth ? t("age.months", { count }) : t("age.years", { count });
 };
 
 
@@ -25,7 +30,7 @@ const headerBgByCategory = {
 export default function PetCard({ pet, onPress }) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
-
+  const { t } = useTranslationLoader("common");
   const H_PADDING = 16;
   const GAP = 12;
   const cardWidth = Math.floor((width - H_PADDING * 2 - GAP) / 2);
@@ -35,7 +40,7 @@ export default function PetCard({ pet, onPress }) {
   const genderColor = isMale
     ? theme.colors.palette.blue[500]
     : theme.colors.palette.coral[500];
-  const distanceText = pet.distance ?? (typeof pet.distanceKm === "number" ? `${pet.distanceKm} km` : "");
+  const distanceText = pet.distanceText ?? null;
   const headerBg = headerBgByCategory[pet.category] ?? "#F3F4F6";
 
   const nameFont = theme.fonts.titleLarge; // 20px per your tokens
@@ -54,7 +59,11 @@ export default function PetCard({ pet, onPress }) {
       ]}
     >
       <View style={[styles.header, { backgroundColor: headerBg }]}>
-        <Image source={{ uri: pet.images[0] }} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{ uri: pet.images[0] }}
+          style={styles.image}
+          resizeMode="cover"
+        />
       </View>
 
       <View style={styles.content}>
@@ -73,13 +82,40 @@ export default function PetCard({ pet, onPress }) {
           >
             {pet.name}
           </Text>
-          <MaterialIcons name={genderIcon} size={genderSize} color={genderColor} style={{ marginLeft: 6 }} />
+          <MaterialIcons
+            name={genderIcon}
+            size={genderSize}
+            color={genderColor}
+            style={{ marginLeft: 6 }}
+          />
         </View>
 
         <View style={styles.pills}>
-          {pet.age ? <Pill text={formatAge(pet.age)} bg="#E8F2FF" fg={theme.colors.palette.blue[500]} icon="access-time" /> : null}
-          {pet.breed ? <Pill text={pet.breed} bg="#FDE7EF" fg="#EC4899" icon="pets" /> : null}
-          {distanceText ? <Pill text={distanceText } bg="#EEEEEE" fg="#6B7280" icon="location-on" /> : null}
+          {pet.age ? (
+            <Pill
+              text={formatAge(pet.age, t)}
+              bg="#E8F2FF"
+              fg={theme.colors.palette.blue[500]}
+              icon="access-time"
+            />
+          ) : null}
+
+          {pet.breed ? (
+            <Pill
+              text={t(`breed.${pet.breed}`)}
+              bg="#FDE7EF"
+              fg="#EC4899"
+              icon="pets"
+            />
+          ) : null}
+          {distanceText ? (
+            <Pill
+              text={distanceText}
+              bg="#EEEEEE"
+              fg="#6B7280"
+              icon="location-on"
+            />
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>

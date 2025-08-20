@@ -2,7 +2,7 @@ import { Modal, ActivityIndicator, View, StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 
 const LoadingModal = ({ loading }) => {
-    const {colors} = useTheme();
+  const { colors } = useTheme();
   return (
     <Modal transparent visible={loading}>
       <View style={styles.modalBackground}>

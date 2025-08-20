@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
-import { useTranslationLoader } from '@/src/localization/hooks/useTranslationLoader';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Text } from "react-native-paper";
+import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 
 const PetHeader = ({ name, colors, children }) => {
-  const { t } = useTranslationLoader('petdetails');
+  const { t } = useTranslationLoader("petdetails");
 
   return (
     <View style={styles.container}>
@@ -17,7 +17,7 @@ const PetHeader = ({ name, colors, children }) => {
             <View
               key={index}
               style={[styles.colorCircle, { backgroundColor: color }]}
-              accessibilityLabel={`${t('color')} ${index + 1}`}
+              accessibilityLabel={`${t("color")} ${index + 1}`}
             />
           ))}
         </View>
@@ -32,23 +32,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   name: {
     flexShrink: 1,
   },
   colorRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
   },
   colorCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: 20,
+    height: 20,
+    borderRadius: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
   },
 });
 

@@ -3,7 +3,6 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
-  Image,
   I18nManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,14 +11,15 @@ import i18n from "../../../../localization/i18n";
 
 export default function NavigationButton({
   iconName,
-  iconImage,
   iconSvg: IconSvg,
   title,
+  trailingText,
   danger,
   onPress,
 }) {
   const { colors } = useTheme();
   const isRTL = I18nManager.isRTL || i18n.language === "ar";
+
   return (
     <TouchableOpacity
       style={[styles.container, { backgroundColor: colors.surface }]}
@@ -36,6 +36,7 @@ export default function NavigationButton({
           <IconSvg />
         ) : null}
       </View>
+
       <Text
         style={[
           styles.title,
@@ -44,6 +45,15 @@ export default function NavigationButton({
       >
         {title}
       </Text>
+
+      {trailingText ? (
+        <Text
+          style={[styles.trailingText, { color: colors.palette.neutral[500] }]}
+        >
+          {trailingText}
+        </Text>
+      ) : null}
+
       <Ionicons
         name={isRTL ? "chevron-back" : "chevron-forward"}
         size={20}
@@ -77,5 +87,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 16,
+  },
+  trailingText: {
+    marginRight: 8,
+    fontSize: 14,
   },
 });

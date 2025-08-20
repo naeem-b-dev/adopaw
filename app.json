@@ -5,10 +5,16 @@
     "slug": "Adopaw",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "listUnknownPackages": false
+      }
+    },
     "icon": "./src/assets/images/icon.png",
     "scheme": "adopawapp",
     "userInterfaceStyle": "automatic",
@@ -24,6 +30,11 @@
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.GOOGLE_MAPS_API_KEY"
+        }
+      },
       "edgeToEdgeEnabled": true,
       "package": "com.tashgheel.adopaw"
     },
@@ -34,7 +45,7 @@
     },
     "extra": {
       "supportsRTL": true,
-      "forcesRTL": true,
+      "forcesRTL": false,
       "router": {},
       "eas": {
         "projectId": "8d28a45d-5243-4826-be24-e879104f52d3"

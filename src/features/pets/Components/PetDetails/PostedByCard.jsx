@@ -12,14 +12,16 @@ const PostedByCard = ({ name, avatarUrl, postedAt }) => {
   const neutral600 = theme.colors.palette.neutral[600];
   const blue600 = theme.colors.palette.blue[600];
   const blue200 = theme.colors.palette.blue[200];
-
   return (
     <View style={[styles.card, { backgroundColor: surfaceColor }]}>
-      <Image source={avatarUrl} style={styles.avatar} />
+      <Image source={{ uri: avatarUrl }} style={styles.avatar} />
 
       <View style={styles.textContainer}>
-        <Text variant="labelSmall" style={[styles.label, { color: neutral600 }]}>
-          {t('postedBy')}
+        <Text
+          variant="labelSmall"
+          style={[styles.label, { color: neutral600 }]}
+        >
+          {t("postedBy")}
         </Text>
         <Text variant="titleMedium" style={styles.name}>
           {name}

@@ -13,43 +13,31 @@ import {
 import { RadioButton, Surface, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { setLanguage } from "../src/localization/i18n";
+import { languagesOption } from "../src/shared/constants/languages";
 import AppButton from "../src/shared/components/ui/AppButton/AppButton";
 export default function SelectLanguage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-const changeLang = async (lang) => {
-  await setLanguage(lang);
-  await AsyncStorage.setItem("user-language", lang);
-  await AsyncStorage.setItem("firstLaunch", "false");
+  const changeLang = async (lang) => {
+    await setLanguage(lang);
+    await AsyncStorage.setItem("user-language", lang);
+    await AsyncStorage.setItem("firstLaunch", "false");
 
-  const isRTL = lang === "ar";
-  const rtlApplied = await AsyncStorage.getItem("rtl-applied");
+    const isRTL = lang === "ar";
+    const rtlApplied = await AsyncStorage.getItem("rtl-applied");
 
-  if (I18nManager.isRTL !== isRTL && rtlApplied !== "true") {
-    I18nManager.allowRTL(isRTL);
-    I18nManager.forceRTL(isRTL);
-    await AsyncStorage.setItem("rtl-applied", "true");
-    await Updates.reloadAsync(); // reload just once
-    return;
-  }
+    if (I18nManager.isRTL !== isRTL && rtlApplied !== "true") {
+      I18nManager.allowRTL(isRTL);
+      I18nManager.forceRTL(isRTL);
+      await AsyncStorage.setItem("rtl-applied", "true");
+      await Updates.reloadAsync(); // reload just once
+      return;
+    }
 
-  router.replace("/(onboarding)/step1");
-};
+    router.replace("/(onboarding)/step1");
+  };
 
   const [selected, setSelected] = useState("en");
-
-  const options = [
-    {
-      label: "English",
-      value: "en",
-      image: require("../src/assets/images/en.png"),
-    },
-    {
-      label: "العربية",
-      value: "ar",
-      image: require("../src/assets/images/ar.png"),
-    },
-  ];
 
   const { colors, dark } = useTheme();
   const image = dark
@@ -75,7 +63,7 @@ const changeLang = async (lang) => {
         ]}
       >
         <Text variant="titleLarge">Select Language</Text>
-        {options.map((option) => {
+        {languagesOption.map((option) => {
           const isSelected = selected === option.value;
 
           return (
@@ -127,7 +115,9 @@ const changeLang = async (lang) => {
         <AppButton
           text={"Continue"}
           onPress={() =>
-            changeLang(options.find((lang) => lang.value === selected)?.value)
+            changeLang(
+              languagesOption.find((lang) => lang.value === selected)?.value
+            )
           }
         />
       </View>

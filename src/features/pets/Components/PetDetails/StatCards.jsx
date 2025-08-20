@@ -9,7 +9,7 @@ const StatCards = ({ size, age, activity }) => {
   const palette = theme.colors.palette;
 
   // Extract numeric part from age string (e.g., "2 years" → 2)
-  const numericAge = parseInt(age.toString().match(/\d+/)?.[0] || '0', 10);
+  const numericAge = parseInt(age?.toString().match(/\d+/)?.[0] || '0', 10);
 
   return (
     <View style={styles.row}>
@@ -18,7 +18,7 @@ const StatCards = ({ size, age, activity }) => {
           {t('size')}
         </Text>
         <Text variant="labelLarge" style={[styles.value, { color: palette.blue[600] }]}>
-          {t(size.toLowerCase())}
+          {t(size?.toLowerCase())}
         </Text>
       </View>
 
@@ -36,7 +36,7 @@ const StatCards = ({ size, age, activity }) => {
           {t('activity')}
         </Text>
         <Text variant="labelLarge" style={[styles.value, { color: palette.blue[600] }]}>
-          {t(activity.toLowerCase())}
+          {t(activity?.toLowerCase())}
         </Text>
       </View>
     </View>
