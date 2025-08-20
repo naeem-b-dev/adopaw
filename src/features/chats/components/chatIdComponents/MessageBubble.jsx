@@ -1,56 +1,85 @@
-// src/features/chats/components/chatIdComponents/MessageBubble.jsx
-
+import { selectUserId } from "@/src/features/auth/store/authSlice";
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Surface, Text, useTheme } from "react-native-paper";
+import { useSelector } from "react-redux";
 
-export default function MessageBubble({ type = "incoming", text, timestamp }) {
+export default function MessageBubble({ item, currentUserId }) {
   const theme = useTheme();
-  const { palette } = theme.colors;
+  const reduxUserId = useSelector(selectUserId);
+  const myId = currentUserId ?? reduxUserId;
+  const isMine = item?.senderId === myId;
 
-  const isIncoming = type === "incoming";
+  const { palette } = theme.colors;
+  const bgMine = palette?.blue?.[400] ?? theme.colors.primary;
+  const bgOther = theme.colors.surface;
+  const fgMine = theme.colors.onPrimary;
+  const fgOther = theme.colors.onSurface;
+  const tsColor = palette?.neutral?.[500] ?? theme.colors.outline;
+
+  const timeLabel = useMemo(() => {
+    const ts = item?.createdAt || item?.timestamp;
+    if (!ts) return "";
+    try {
+      const d = new Date(ts);
+      return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  }, [item?.createdAt, item?.timestamp]);
 
   return (
-    <View
-      style={[
-        styles.messageBubble,
-        isIncoming ? styles.incomingBubble : styles.outgoingBubble,
-        {
-          backgroundColor: isIncoming ? theme.colors.surface : palette.blue[400],
-        },
-      ]}
-    >
-      <Text
+    <View style={[styles.row, { justifyContent: isMine ? "flex-end" : "flex-start" }]}>
+      <Surface
+        elevation={0} // flatter look; prevents “double” visual
         style={[
-          styles.messageText,
-          { color:  palette.neutral[900]  },
+          styles.bubble,
+          isMine ? styles.bubbleMine : styles.bubbleOther,
+          { backgroundColor: isMine ? bgMine : bgOther },
         ]}
       >
-        {text}
-      </Text>
-      <Text style={[styles.timestamp, { color: palette.neutral[500] }]}> 
-        {timestamp}
-      </Text>
+        {!!item?.content?.text && (
+          <Text style={[styles.text, { color: isMine ? fgMine : fgOther }]} variant="bodyMedium">
+            {item.content.text}
+          </Text>
+        )}
+        {!!timeLabel && (
+          <Text style={[styles.time, { color: isMine ? fgMine : tsColor }]}>{timeLabel}</Text>
+        )}
+      </Surface>
     </View>
   );
 }
 
+const R = 16; // base radius
 const styles = StyleSheet.create({
-  messageBubble: {
-    maxWidth: "80%",
-    padding: 10,
-    borderRadius: 12,
+  row: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    flexDirection: "row",
   },
-  incomingBubble: {
-    alignSelf: "flex-start",
+  bubble: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    maxWidth: "85%",
   },
-  outgoingBubble: {
-    alignSelf: "flex-end",
+  bubbleMine: {
+    borderTopLeftRadius: R,
+    borderTopRightRadius: R,
+    borderBottomLeftRadius: R,
+    borderBottomRightRadius: 6, // slightly sharper tail side
   },
-  messageText: {
+  bubbleOther: {
+    borderTopLeftRadius: R,
+    borderTopRightRadius: R,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: R,
+  },
+  text: {
     fontFamily: "Alexandria_400Regular",
     fontSize: 14,
   },
-  timestamp: {
+  time: {
     fontSize: 11,
     marginTop: 4,
     alignSelf: "flex-end",

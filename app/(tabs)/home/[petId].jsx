@@ -2,14 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Dimensions,
+  Image,
+  Modal,
+  Pressable,
+
+  Alert,
   ScrollView,
   View,
   StyleSheet,
-  Dimensions,
-  Image,
-  Pressable,
-  Modal,
-  Alert,
 } from "react-native";
 import { Menu, Text, useTheme, Snackbar } from "react-native-paper";
 import MapView, { Marker } from "react-native-maps";
@@ -411,7 +412,7 @@ export default function PetDetailScreen() {
         />
       </View>
 
-      <Modal visible={isModalVisible} transparent={true}>
+      <Modal visible={isModalVisible} transparent>
         <View style={styles.modalContainer}>
           <ScrollView
             horizontal
@@ -460,14 +461,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    backgroundColor: "lightgray",
+    backgroundColor: 'lightgray',
   },
   carouselImage: {
-    width: Dimensions.get("window").width,
+    width: Dimensions.get('window').width,
     height: 350,
   },
   backIcon: {
-    position: "absolute",
+    position: 'absolute',
     top: 50,
     left: 20,
     zIndex: 10,

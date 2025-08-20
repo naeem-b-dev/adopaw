@@ -7,4 +7,6 @@
   "pawloSubtitle": "Here to help with all your pet needs!",
   "youSentText": "You: Hello",
   "newMessage": "New message",
-  "petAvailable": "Pet still available?"}
+  "petAvailable": "Pet still available?",
+  "retry": "Retry"
+}

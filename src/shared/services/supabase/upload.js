@@ -1,5 +1,6 @@
-import { supabase } from "./client";
 import * as FileSystem from "expo-file-system";
+import { supabase } from "./client";
+
 
 /**
  * Uploads an image to Supabase storage using Expo FileSystem
@@ -82,4 +83,70 @@ export const uploadImageToSupabase = async (imageUri, bucketName) => {
     console.error("Error uploading image to Supabase:", error);
     throw error;
   }
-};
+}
+
+/** One bucket (make sure it exists in Supabase → Storage and allow public read) */
+const BUCKET = process.env.EXPO_PUBLIC_SB_BUCKET || "chat-uploads";
+
+/** Turn a local file URI (file:// …) into a Blob (works in Expo RN) */
+async function uriToBlob(uri) {
+  const res = await fetch(uri);
+  if (!res.ok) throw new Error(`Failed to read file: ${res.status}`);
+  return await res.blob();
+}
+
+/**
+ * Upload a local image (from ImagePicker) and get a PUBLIC URL.
+ * @param {string} localUri  file://… from ImagePicker
+ * @param {string} pathPrefix  optional folder name in the bucket (default 'pawlo')
+ * @returns {Promise<{ publicUrl: string, path: string }>}
+ */
+
+function guessMime(uri) {
+  const ext = (uri.split(".").pop() || "").toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (ext === "heic") return "image/heic";
+  if (ext === "heif") return "image/heif";
+  return "application/octet-stream";
+}
+
+/**
+ * Upload a local image and return a URL that WILL open (signed),
+ * regardless of bucket privacy.
+ */
+export async function uploadChatImage(localUri, pathPrefix = "pawlo") {
+  if (!localUri) throw new Error("No localUri");
+  if (!BUCKET) throw new Error("Bucket not configured");
+
+  // Read bytes reliably (avoids 0-byte uploads)
+  const resp = await fetch(localUri);
+  if (!resp.ok) throw new Error(`Read file failed: ${resp.status}`);
+  const ab = await resp.arrayBuffer();
+  if (!ab || ab.byteLength === 0) throw new Error("Read file produced 0 bytes");
+
+  const ext = (localUri.split(".").pop() || "jpg").toLowerCase();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const path = `${pathPrefix}/${filename}`;
+  const contentType = guessMime(localUri);
+
+  const { error: upErr } = await supabase
+    .storage
+    .from(BUCKET)
+    .upload(path, ab, { contentType, upsert: false });
+
+  if (upErr) throw upErr;
+
+  // Always return a signed URL so it works for private buckets too
+  const { data: signed, error: signErr } =
+    await supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+
+  if (signErr || !signed?.signedUrl)
+    throw new Error(`Could not create signed URL: ${signErr?.message || "unknown"}`);
+
+  console.log("[UPLOAD] signedUrl →", signed.signedUrl);
+  return { publicUrl: signed.signedUrl, path };
+}
+
+;

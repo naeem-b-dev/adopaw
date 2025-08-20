@@ -1,8 +1,8 @@
-{
-  "today": "Today",
-  "yesterday": "Yesterday",
-  "typeMessage": "Type a message",
-  "chatTitle": "Chat",
-  "backToChats": "Chats",
-  "pawloTitle": "Pawlo"
-}
+ {
+   "chatTitle": "Chat",
+   "backToChats": "Back",
+   "pawloTitle": "Pawlo",
+   "today": "Today",
+   "inputPlaceholder": "Message…",
+   "typing": "typing…"
+ }
