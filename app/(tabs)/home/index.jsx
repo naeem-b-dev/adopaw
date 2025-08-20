@@ -53,7 +53,6 @@ export default function Home() {
         <Text
           style={{
             color: theme.colors.text,
-            fontWeight: "bold",
           }}
           variant="displayLarge"
         >

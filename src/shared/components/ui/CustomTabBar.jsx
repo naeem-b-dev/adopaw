@@ -146,7 +146,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
       </View>
 
       {/* centered FAB (rounded +), anchored to container bottom and RTL-safe */}
-      <View style={[styles.fabOverlay, { bottom: Math.max(insets.bottom, 8) + 24 }]} pointerEvents="box-none">
+      <View style={[styles.fabOverlay, { bottom: Math.max(insets.bottom, 8) + 12 }]} pointerEvents="box-none">
         <TouchableOpacity
           activeOpacity={0.95}
           onPress={() => router.push("/(tabs)/addPet")}
@@ -208,7 +208,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         shadowOffset: { width: 0, height: 4 },
       },
-      android: { elevation: 12 },
     }),
   },
   fabCircle: {
