@@ -53,7 +53,7 @@ export default function PetsCategories({ selected, onSelect, style }) {
                   lineHeight: theme.fonts.titleSmall.lineHeight,
                 }}
               >
-                {t(cat.key, cat.label)}
+                {t(`category.${cat.key}`, cat.label)}
               </Text>
             </View>
           </TouchableOpacity>

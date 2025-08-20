@@ -10,7 +10,7 @@ export default function FilterScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Filters" }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Filter
           onClose={() => router.back()}

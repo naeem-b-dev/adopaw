@@ -21,9 +21,13 @@
   "location.label": "الموقع (كم)",
   "reset": "إعادة تعيين",
   "done": "تم",
-  "category.dog": "كلاب",
-  "category.cat": "قطط",
-  "category.bird": "طيور",
-  "category.rabbit": "أرانب",
+  "filters.title": "الفلاتر",
+  "category.label": "الفئة",
+  "category.dog": "كلب",
+  "category.cat": "قط",
+  "category.bird": "طائر",
+  "category.rabbit": "أرنب",
+  "category.fish": "سمك",
+  "category.hamster": "هامستر",
   "category.other": "أخرى"
 }

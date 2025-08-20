@@ -2,15 +2,16 @@ import Slider from "@react-native-community/slider";
 import { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
+import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 import AppButton from "../../../shared/components/ui/AppButton/AppButton";
 import PetsCategories from "./pets_categories";
-import { useTranslationLoader } from "../../../localization/hooks/useTranslationLoader";
 
 
 
 export default function Filter({ onClose, onApply }) {
   const theme = useTheme();
   const { t } = useTranslationLoader("home");
+  const neutral = theme.colors?.palette?.neutral;
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedAge, setSelectedAge] = useState(null);
   const ageOptions = [
@@ -36,7 +37,7 @@ export default function Filter({ onClose, onApply }) {
     { key: "medium", label: t("activity.medium", "Medium") },
     { key: "high", label: t("activity.high", "High") },
   ];
-  const [distance, setDistance] = useState(50); // default 50 km
+  const [distance, setDistance] = useState(150); // default to maximum
 
   const applyFilters = () => {
     const payload = {
@@ -80,6 +81,28 @@ export default function Filter({ onClose, onApply }) {
     container: {
       flex: 1,
       justifyContent: "space-between",
+      padding: 16,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 8,
+      backgroundColor: theme.colors.surface,
+      borderColor: neutral ? neutral[300] : theme.colors.onSurface,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: theme.colors.onSurface,
     },
     options: {
       flex: 1,
@@ -103,8 +126,15 @@ export default function Filter({ onClose, onApply }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.options.group}>
-      <Text style={styles.sectionTitle}>{t("category", "Category")}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity accessibilityRole="button" style={styles.backButton} onPress={onClose}>
+          <Text>{"←"}</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("filters.title", "Filters")}</Text>
+      </View>
+
+      <View style={styles.group}>
+      <Text style={styles.sectionTitle}>{t("category.label", "Category")}</Text>
         <PetsCategories
           selected={selectedCategory}
           onSelect={setSelectedCategory}
@@ -126,10 +156,10 @@ export default function Filter({ onClose, onApply }) {
                         {
                           backgroundColor: isSelected
                             ? theme.colors.primary
-                            : theme.colors.background,
+                            : theme.colors.surface,
                           borderColor: isSelected
                             ? theme.colors.primary
-                            : theme.colors.onSurface,
+                            : (neutral ? neutral[300] : theme.colors.onSurface),
                         },
                     ]}
                     onPress={() => setSelectedAge(isSelected ? null : opt.key)}
@@ -163,10 +193,10 @@ export default function Filter({ onClose, onApply }) {
                         {
                           backgroundColor: isSelected
                             ? theme.colors.primary
-                            : theme.colors.background,
+                            : theme.colors.surface,
                           borderColor: isSelected
                             ? theme.colors.primary
-                            : theme.colors.onSurface,
+                            : (neutral ? neutral[300] : theme.colors.onSurface),
                         },
                      ]}
                      onPress={() => setSelectedSize(isSelected ? null : opt.key)}
@@ -200,10 +230,10 @@ export default function Filter({ onClose, onApply }) {
                     {
                       backgroundColor: isSelected
                         ? theme.colors.primary
-                        : theme.colors.background,
+                        : theme.colors.surface,
                       borderColor: isSelected
                         ? theme.colors.primary
-                        : theme.colors.onSurface,
+                        : (neutral ? neutral[300] : theme.colors.onSurface),
                     },
                   ]}
                   onPress={() => setSelectedGender(isSelected ? null : opt.key)}
@@ -237,10 +267,10 @@ export default function Filter({ onClose, onApply }) {
                   {
                     backgroundColor: isSelected
                         ? theme.colors.primary
-                        : theme.colors.background,
+                        : theme.colors.surface,
                     borderColor: isSelected
                         ? theme.colors.primary
-                        : theme.colors.onSurface,
+                        : (neutral ? neutral[300] : theme.colors.onSurface),
                   },
                 ]}
                 onPress={() => setSelectedActivity(isSelected ? null : opt.key)}
@@ -289,7 +319,7 @@ export default function Filter({ onClose, onApply }) {
             setSelectedSize(null);
             setSelectedGender(null);
             setSelectedActivity(null);
-            setDistance(50);
+            setDistance(150);
           }}
           style={styles.resetButton}
         />

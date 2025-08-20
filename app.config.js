@@ -17,7 +17,13 @@ module.exports = ({ config }) => {
         googleMaps: {
           apiKey: apiKey || ""
         }
-      }
+      },
+      // Pass API key to build process for manifest injection
+      ...(apiKey && {
+        buildConfigFields: {
+          MAPS_API_KEY: apiKey
+        }
+      })
     }
   };
 };
