@@ -33,6 +33,7 @@ export default function ChatInput({
   const insets = useSafeAreaInsets();
   const jwt = useSelector(selectJwt);
   const getToken = useCallback(async () => jwt || "", [jwt]);
+  
 
   const palette = theme.colors?.palette || {};
   const isDark = !!theme.dark;
@@ -70,6 +71,27 @@ export default function ChatInput({
   }, [chatId, isMessageNotEmpty, message]);
 
   const handleSend = async () => {
+
+    try {
+      if (chatId) {
+        if (hasImage) {
+          await sendMessage(chatId, { type: "image", content: { imageUrl: pendingImage } }, getToken);
+        }
+        if (trimmed) {
+          await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
+        }
+        // ✅ notify parent to refetch
+        onSend?.();
+      } else if (onSend) {
+        await onSend(trimmed, { localImages: hasImage ? [pendingImage] : [] });
+      }
+    } catch (err) {
+      console.warn("Send failed:", err?.message || err);
+    } finally {
+      setMessage("");
+      setPendingImage(null);
+    }
+
     const trimmed = message.trim();
     const hasImage = !!pendingImage;
     if (!trimmed && !hasImage) return;

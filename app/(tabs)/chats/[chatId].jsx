@@ -60,18 +60,24 @@ export default function ChatDetailScreen() {
       // Mark most recent as read
       const latest = items[items.length - 1];
       if (latest?._id) {
-        markAsRead(String(chatId), latest._id, getToken).catch(() => {});
+        markAsRead(String(chatId), latest._id, getToken).catch(() => { });
       }
     } finally {
       setLoading(false);
     }
   }, [chatId, getToken]);
+  const refetchNow = useCallback(async () => {
+    const res = await getMessages(String(chatId), 30, null, getToken);
+    setMessages(res.items);
+    setNextCursor(res.nextCursor || null);
+  }, [chatId, getToken]);
+
 
   // Subscribe to live events
   useEffect(() => {
     if (!chatId) return;
-    let unsubscribe = () => {};
-    let unTyping = () => {};
+    let unsubscribe = () => { };
+    let unTyping = () => { };
     loadInitial();
 
     unsubscribe = subscribeToMessages(String(chatId), (evt) => {
@@ -80,7 +86,7 @@ export default function ChatDetailScreen() {
 
         // If message is from the other user, mark as read (you're viewing this chat)
         if (evt.message.senderId && evt.message.senderId !== currentUserId) {
-          markAsRead(String(chatId), evt.message._id, getToken).catch(() => {});
+          markAsRead(String(chatId), evt.message._id, getToken).catch(() => { });
         }
       } else if (evt.type === "edit" && evt.message) {
         setMessages((prev) => prev.map((m) => (m._id === evt.message._id ? evt.message : m)));
@@ -116,17 +122,13 @@ export default function ChatDetailScreen() {
     setNextCursor(res.nextCursor || null);
   }, [chatId, nextCursor, getToken]);
 
-  const renderItem = useCallback(({ item }) => {
-    // Backend shape: { _id, chatId, senderId, type, content:{...}, createdAt }
-    if (item.type === "image") {
-      return <ImageMessage item={item} />;
-    }
-    return <MessageBubble item={item} />;
-  }, []);
+ const renderItem = useCallback(({ item }) => {
+   if (item.type === "image") {
+     return <ImageMessage item={item} currentUserId={currentUserId} />;
+   }
+   return <MessageBubble item={item} currentUserId={currentUserId} />;
+ }, [currentUserId]);
 
-  if (loading && !initialLoaded) {
-    return <ActivityIndicator style={{ marginTop: 24 }} />;
-  }
 
   return (
     <KeyboardAvoidingView
@@ -177,7 +179,7 @@ export default function ChatDetailScreen() {
       ) : null}
 
       <View style={{ paddingBottom: Math.max(insets.bottom, 0) }}>
-        <ChatInput chatId={String(chatId)} />
+        <ChatInput chatId={String(chatId)} onSend={refetchNow} />
       </View>
     </KeyboardAvoidingView>
   );

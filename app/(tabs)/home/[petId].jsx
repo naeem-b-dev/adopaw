@@ -1,27 +1,29 @@
+import { selectJwt } from "@/src/features/auth/store/authSlice";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Image,
   Modal,
   Pressable,
-
-  Alert,
   ScrollView,
-  View,
   StyleSheet,
+  View,
 } from "react-native";
-import { Menu, Text, useTheme, Snackbar } from "react-native-paper";
 import MapView, { Marker } from "react-native-maps";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Menu, Snackbar, Text, useTheme } from "react-native-paper";
+import { useSelector } from "react-redux";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 
-import PetHeader from "@/src/features/pets/Components/PetDetails/PetHeader";
-import PetChips from "@/src/features/pets/Components/PetDetails/PetChips";
-import StatCards from "@/src/features/pets/Components/PetDetails/StatCards";
-import PostedByCard from "@/src/features/pets/Components/PetDetails/PostedByCard";
 import AboutText from "@/src/features/pets/Components/PetDetails/AboutText";
+import PetChips from "@/src/features/pets/Components/PetDetails/PetChips";
+import PetHeader from "@/src/features/pets/Components/PetDetails/PetHeader";
+import PostedByCard from "@/src/features/pets/Components/PetDetails/PostedByCard";
+import StatCards from "@/src/features/pets/Components/PetDetails/StatCards";
+import { createOrGetChatWithParticipants } from "@/src/shared/services/chatService";
 import AppButton from "../../../src/shared/components/ui/AppButton/AppButton";
 
 import {
@@ -30,10 +32,10 @@ import {
   setAdopted,
 } from "@/src/features/pets/services/petApi";
 import { deleteImageFromSupabase } from "@/src/shared/services/supabase/delete";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getReadableAddress } from "../../../src/features/home/utils/getReadbleAddress";
 import { formatTimeAgo } from "../../../src/features/home/utils/timeAgo";
 import LoadingModal from "../../../src/shared/components/ui/LoadingModal/LoadingModal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const unstable_settings = {
   tabBarStyle: { display: "none" },
@@ -55,6 +57,9 @@ export default function PetDetailScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const jwt = useSelector(selectJwt);
+  const getToken = useCallback(async () => jwt || "", [jwt]);
+
   const {
     data: petData,
     isLoading,
@@ -75,11 +80,39 @@ export default function PetDetailScreen() {
   const handleScroll = (event) => {
     const slide = Math.round(
       event.nativeEvent.contentOffset.x / Dimensions.get("window").width
-);
+    );
     if (slide !== activeIndex) {
       setActiveIndex(slide);
     }
   };
+
+  const onAdoptMe = async () => {
+    try {
+      if (!profile?._id || !petData?.postedBy?._id) {
+        Alert.alert("Error", "You must be logged in to start a chat.");
+        return;
+      }
+      if (profile._id === petData.postedBy._id) {
+        Alert.alert("Note", "You are the owner of this pet.");
+        return;
+      }
+
+      setLoading(true);
+      const { chatId } = await createOrGetChatWithParticipants(
+        [profile._id, petData.postedBy._id],
+        getToken
+      );
+      if (!chatId) throw new Error("No chatId returned");
+      router.push(`/chats/${chatId}`);
+    } catch (e) {
+      console.error("[AdoptMe] failed:", e?.message || e);
+      Alert.alert("Error", "Could not open chat. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   const handleEditPet = () => {
     setMenuVisible(false); // Close menu first
@@ -192,6 +225,21 @@ export default function PetDetailScreen() {
   }, []);
 
   const isOwner = profile?._id && petData?.postedBy?._id === profile._id;
+
+  const handleAdoptMe = async () => {
+    try {
+      if (!petData?.postedBy?._id) throw new Error("No owner found for this pet");
+      // create or get a direct chat with the owner
+      const { chatId } = await createOrGetChatWithParticipants(
+        [String(petData.postedBy._id)],
+        getToken
+      );
+      router.push(`/chats/${chatId}`);
+    } catch (e) {
+      console.log("[AdoptMe] failed:", e?.message || e);
+      Alert.alert("Couldn’t start chat", e?.message || "Please try again.");
+    }
+  };
   useEffect(() => {
     if (petData?.location?.coordinates?.length === 2) {
       const [longitude, latitude] = petData.location.coordinates;
@@ -405,11 +453,13 @@ export default function PetDetailScreen() {
           )}
         </View>
         <AppButton
-          onPress={() => {}}
+          onPress={handleAdoptMe}
           text={t("adoptMe")}
           disabled={isOwner}
           style={styles.adoptButton}
         />
+
+
       </View>
 
       <Modal visible={isModalVisible} transparent>
@@ -422,7 +472,7 @@ export default function PetDetailScreen() {
             onScroll={(event) => {
               const newIndex = Math.round(
                 event.nativeEvent.contentOffset.x /
-                  Dimensions.get("window").width
+                Dimensions.get("window").width
               );
               setActiveIndex(newIndex);
             }}

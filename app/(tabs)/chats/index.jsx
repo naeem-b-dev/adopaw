@@ -29,11 +29,30 @@ export default function ChatsScreen() {
     try {
       setLoading(true);
       const data = await getUserChats(getToken);
-      const sorted = Array.isArray(data)
-        ? [...data].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-        : [];
-      setChats(sorted);
-    } finally {
+      const me = String(jwt ? "" : ""); // we’ll get my id via server in messages; unread logic uses last sender
+      const arr = Array.isArray(raw) ? raw : (raw?.items || []);
+
+      // Normalize id, sort by lastMessageAt, zero unread if I am the last sender, and DEDUPE by id
+      const byId = new Map();
+      for (const c of arr) {
+        const id = String(c?._id || c?.chatId || "");
+        if (!id) continue;
+        const lastSender = String(c?.lastMessage?.senderId || "");
+        const norm = {
+          ...c,
+          id,
+          lastMessageAt: c?.lastMessageAt || c?.updatedAt || null,
+          unreadCount: lastSender === me ? 0 : (c?.unreadCount || 0),
+        };
+        byId.set(id, norm); // dedupe
+      }
+      const finalList = Array.from(byId.values()).sort(
+        (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
+      );
+      setChats(finalList);
+
+    }
+    finally {
       setLoading(false);
     }
   }, [getToken]);
