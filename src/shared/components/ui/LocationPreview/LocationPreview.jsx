@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
-import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import InputLabel from "../InputLabel/InputLabel";
-import MapPickerModal from "../../../../features/addPet/Components/MapPicker/MapPickerModal";
 import MapPicker from "../../../../features/addPet/Components/MapPicker/MapPicker";
-import { getReadableAddress } from "../../../../features/home/utils/getReadbleAddress";
+import MapPickerModal from "../../../../features/addPet/Components/MapPicker/MapPickerModal";
 import LocationInput from "../../../../features/auth/components/LocationInput/LocationInput";
+import { getReadableAddress } from "../../../../features/home/utils/getReadbleAddress";
+import WebMapPreview from "../WebMap/WebMapPreview";
+
 export default function LocationPreview({
   location,
   setLocation,
@@ -36,25 +36,12 @@ export default function LocationPreview({
     <View>
       {location && (
         <View style={{ marginTop: 12 }}>
-          <MapView
+          <WebMapPreview
+            latitude={latitude}
+            longitude={longitude}
+            description={address}
             style={{ height: 200, borderRadius: 12, overflow: "hidden" }}
-            region={{
-              latitude,
-              longitude,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            <Marker
-              coordinate={{
-                latitude,
-                longitude,
-              }}
-              description={address}
-            />
-          </MapView>
+          />
 
           {/* Address & Actions */}
           <View

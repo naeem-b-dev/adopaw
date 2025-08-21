@@ -1,27 +1,26 @@
+import WebMapPreview from "@/src/shared/components/ui/WebMap/WebMapPreview";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Image,
   Modal,
   Pressable,
-
-  Alert,
   ScrollView,
-  View,
   StyleSheet,
+  View,
 } from "react-native";
-import { Menu, Text, useTheme, Snackbar } from "react-native-paper";
-import MapView, { Marker } from "react-native-maps";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Menu, Snackbar, Text, useTheme } from "react-native-paper";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 
-import PetHeader from "@/src/features/pets/Components/PetDetails/PetHeader";
-import PetChips from "@/src/features/pets/Components/PetDetails/PetChips";
-import StatCards from "@/src/features/pets/Components/PetDetails/StatCards";
-import PostedByCard from "@/src/features/pets/Components/PetDetails/PostedByCard";
 import AboutText from "@/src/features/pets/Components/PetDetails/AboutText";
+import PetChips from "@/src/features/pets/Components/PetDetails/PetChips";
+import PetHeader from "@/src/features/pets/Components/PetDetails/PetHeader";
+import PostedByCard from "@/src/features/pets/Components/PetDetails/PostedByCard";
+import StatCards from "@/src/features/pets/Components/PetDetails/StatCards";
 import AppButton from "../../../src/shared/components/ui/AppButton/AppButton";
 
 import {
@@ -30,10 +29,10 @@ import {
   setAdopted,
 } from "@/src/features/pets/services/petApi";
 import { deleteImageFromSupabase } from "@/src/shared/services/supabase/delete";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getReadableAddress } from "../../../src/features/home/utils/getReadbleAddress";
 import { formatTimeAgo } from "../../../src/features/home/utils/timeAgo";
 import LoadingModal from "../../../src/shared/components/ui/LoadingModal/LoadingModal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const unstable_settings = {
   tabBarStyle: { display: "none" },
@@ -365,28 +364,13 @@ export default function PetDetailScreen() {
 
           {location?.coordinates && (
             <>
-              <MapView
+              <WebMapPreview
+                latitude={location.coordinates[1]}
+                longitude={location.coordinates[0]}
+                title={name}
+                description={readableAddress}
                 style={styles.map}
-                initialRegion={{
-                  latitude: location.coordinates[1],
-                  longitude: location.coordinates[0],
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                scrollEnabled={false}
-                zoomEnabled={false}
-                pitchEnabled={false}
-                rotateEnabled={false}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: location.coordinates[1],
-                    longitude: location.coordinates[0],
-                  }}
-                  title={name}
-                  description={readableAddress}
-                />
-              </MapView>
+              />
 
               <View style={styles.locationInfoRow}>
                 <Ionicons

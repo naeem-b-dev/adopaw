@@ -22,6 +22,17 @@ export default function MapPage() {
     );
   }, [q]);
 
+  // Smoothly pan/zoom the map by updating region (WebView listens and updates instantly)
+  const panTo = (lat, lng, delta = 0.015) => {
+    setRegion(r => ({
+      ...(r || {}),
+      latitude: lat,
+      longitude: lng,
+      latitudeDelta: delta,
+      longitudeDelta: delta,
+    }));
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={StyleSheet.absoluteFill}>
@@ -37,7 +48,14 @@ export default function MapPage() {
           style={{ height: 48, backgroundColor: "#fff" }}
           outlineStyle={{ borderRadius: 16, borderWidth: 1 }}
           left={<TextInput.Icon icon="magnify" />}
-          right={<TextInput.Icon icon="close" onPress={() => setQ("")} />}
+          right={<TextInput.Icon icon="close" onPress={() => { setQ(""); recenter(); }} />}
+          returnKeyType="search"
+          onSubmitEditing={() => {
+            if (filteredMarkers.length > 0) {
+              const f = filteredMarkers[0];
+              panTo(f.latitude, f.longitude, 0.02);
+            }
+          }}
         />
       </View>
 
