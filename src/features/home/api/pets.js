@@ -123,7 +123,7 @@ const filterPetsByActivity = (pets, activityFilter) => {
       case 'high':
         return petActivity === 'high' || petActivity === 'h';
       default:
-        return true;
+  return true;
     }
   });
 };
