@@ -1,3 +1,6 @@
+// app/(tabs)/chats/_components/ChatInput.jsx (or your path)
+// Uses Supabase access_token for Authorization on send().
+
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -12,28 +15,21 @@ import {
   View,
 } from "react-native";
 import EmojiSelector, { Categories } from "react-native-emoji-selector";
-
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { selectJwt } from "@/src/features/auth/store/authSlice";
+import { getAuthToken } from "@/src/shared/services/supabase/getters";
 import { sendMessage, setTyping } from "@/src/shared/services/chatService";
-import { useSelector } from "react-redux";
 
-export default function ChatInput({
-  chatId,
-  onSend,
-  onSendImage,
-}) {
+export default function ChatInput({ chatId, onSend, onSendImage }) {
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [pendingImage, setPendingImage] = useState(null);
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const jwt = useSelector(selectJwt);
-  const getToken = useCallback(async () => jwt || "", [jwt]);
-  
+
+  const getToken = useCallback(async () => (await getAuthToken()) || "", []);
 
   const palette = theme.colors?.palette || {};
   const isDark = !!theme.dark;
@@ -55,7 +51,7 @@ export default function ChatInput({
   const isMessageNotEmpty = message.trim().length > 0;
   const typingTimerRef = useRef(null);
 
-  // Typing (only for DM rooms)
+  // Typing indicator
   useEffect(() => {
     if (!chatId) return;
     if (isMessageNotEmpty) {
@@ -71,27 +67,6 @@ export default function ChatInput({
   }, [chatId, isMessageNotEmpty, message]);
 
   const handleSend = async () => {
-
-    try {
-      if (chatId) {
-        if (hasImage) {
-          await sendMessage(chatId, { type: "image", content: { imageUrl: pendingImage } }, getToken);
-        }
-        if (trimmed) {
-          await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
-        }
-        // ✅ notify parent to refetch
-        onSend?.();
-      } else if (onSend) {
-        await onSend(trimmed, { localImages: hasImage ? [pendingImage] : [] });
-      }
-    } catch (err) {
-      console.warn("Send failed:", err?.message || err);
-    } finally {
-      setMessage("");
-      setPendingImage(null);
-    }
-
     const trimmed = message.trim();
     const hasImage = !!pendingImage;
     if (!trimmed && !hasImage) return;
@@ -100,15 +75,23 @@ export default function ChatInput({
 
     try {
       if (chatId) {
-        // DM room: send to your backend as before
         if (hasImage) {
-          await sendMessage(chatId, { type: "image", content: { imageUrl: pendingImage } }, getToken);
+          await sendMessage(
+            chatId,
+            { type: "image", content: { imageUrl: pendingImage } },
+            getToken
+          );
         }
         if (trimmed) {
-          await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
+          await sendMessage(
+            chatId,
+            { type: "text", content: { text: trimmed } },
+            getToken
+          );
         }
+        onSend?.(); // parent can refetch if needed
       } else if (onSend) {
-        // Pawlo flow: send BOTH in one call
+        // Pawlo flow: send text + optional images to the assistant callback
         await onSend(trimmed, { localImages: hasImage ? [pendingImage] : [] });
       }
     } catch (err) {
@@ -131,14 +114,13 @@ export default function ChatInput({
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") return;
 
-      // ✅ Compatible with old/new expo-image-picker
       const imageEnum =
         ImagePicker?.MediaType?.Images ?? ImagePicker?.MediaTypeOptions?.Images;
 
       const options = {
         allowsMultipleSelection: false,
         quality: 0.8,
-        ...(imageEnum ? { mediaTypes: imageEnum } : {}), // omit if enum missing
+        ...(imageEnum ? { mediaTypes: imageEnum } : {}),
       };
 
       const result = await ImagePicker.launchImageLibraryAsync(options);
@@ -148,7 +130,7 @@ export default function ChatInput({
       if (!uri) return;
 
       setShowEmoji(false);
-      setPendingImage(uri); // attach only; send happens when user taps Send
+      setPendingImage(uri);
     } catch (err) {
       console.warn("Pick image failed:", err?.message || err);
     }

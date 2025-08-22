@@ -1,10 +1,9 @@
 // src/shared/services/chatService.js
 // Frontend service layer for chats (Expo RN + Socket.IO + REST)
-// Uses EXPO_PUBLIC_API_BASE for chat REST (set it to https://<host>/chat)
-// Uses EXPO_PUBLIC_BACKEND_API_URL for Pawlo REST (under /chat-api)
-// All auth flows accept a getToken() -> Promise<string> returning your JWT.
+// User-to-user chat REST lives under EXPO_PUBLIC_API_BASE (e.g. http://<host>:5000/chat-api)
+// Assistant (Pawlo) REST lives under EXPO_PUBLIC_PAWLO_API_BASE (e.g. http://<host>:5000/chat)
+// All auth flows accept a getToken() -> Promise<string> returning your Supabase access_token.
 
-import axios from "axios";
 import { io } from "socket.io-client";
 
 /**
@@ -15,28 +14,28 @@ import { io } from "socket.io-client";
 // ---------- Env resolution helpers ----------
 
 function getApiBase() {
-  // Preferred: EXPO_PUBLIC_API_BASE (e.g. https://host/chat)
+  // EXPO_PUBLIC_API_BASE should be like: http://192.168.0.7:5000/chat-api
   const baseA = process.env.EXPO_PUBLIC_API_BASE;
   if (baseA) return baseA.replace(/\/$/, "");
 
-  // Fallback: EXPO_PUBLIC_BACKEND_API_URL + "/chat"
-  const baseB = process.env.EXPO_PUBLIC_BACKEND_API_URL;
-  if (baseB) return `${baseB.replace(/\/$/, "")}/chat`;
+  // Fallback for dev if you only set EXPO_PUBLIC_BACKEND_API_URL
+  const be = process.env.EXPO_PUBLIC_BACKEND_API_URL;
+  if (be) return `${be.replace(/\/$/, "")}/chat-api`;
 
   throw new Error(
-    "chatService: Missing API base. Set EXPO_PUBLIC_API_BASE to your /chat base or EXPO_PUBLIC_BACKEND_API_URL."
+    "chatService: Missing API base. Set EXPO_PUBLIC_API_BASE to your /chat-api base."
   );
 }
 
-// Pawlo lives under /chat-api
+// Pawlo (assistant) lives under /chat
 function getPawloBase() {
   const explicit = process.env.EXPO_PUBLIC_PAWLO_API_BASE;
   if (explicit) return explicit.replace(/\/$/, "");
 
   const be = process.env.EXPO_PUBLIC_BACKEND_API_URL;
-  if (be) return `${be.replace(/\/$/, "")}/chat-api`;
+  if (be) return `${be.replace(/\/$/, "")}/chat`;
 
-  // If nothing set, reuse chat base and hope the backend mounted both under same prefix.
+  // Last resort: reuse chat base (may be wrong prefix)
   return getApiBase();
 }
 
@@ -77,7 +76,8 @@ function _waitForSocket() {
 async function fetchJSON(path, opts = {}, getToken) {
   const base = getApiBase();
   const token = await (getToken ? getToken() : getTokenRef());
-  const res = await fetch(`${base}${path}`, {
+  const url = `${base}${path}`;
+  const res = await fetch(url, {
     ...opts,
     headers: {
       "Content-Type": "application/json",
@@ -87,7 +87,7 @@ async function fetchJSON(path, opts = {}, getToken) {
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} ${res.statusText}: ${txt || path}`);
+    throw new Error(`HTTP ${res.status} ${res.statusText}: ${txt || url}`);
   }
   return res.json();
 }
@@ -137,46 +137,39 @@ export function initSocket(getToken) {
 // ---------- Chat list ----------
 
 /**
- * Fetches the user's chat list from the server using JWT for authorization.
- * @param {Function} getToken - A function that resolves to a JWT string.
- * @returns {Promise<Array>} - Resolves to an array of chat items.
+ * REST: Get the current user's chats.
+ * @param {() => Promise<string>} getToken
+ * @returns {Promise<ChatSummary[]>}
  */
 export async function getUserChats(getToken) {
-  const token = await getToken();
-  const res = await axios.get(
-    `${process.env.EXPO_PUBLIC_BACKEND_API_URL}/chat/me/chats`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+  // ✅ use the same base as other chat REST calls (/chat-api)
+  return fetchJSON(`/me/chats`, { method: "GET" }, getToken).then((data) =>
+    Array.isArray(data?.items) ? data.items : []
   );
-
-  console.log("Fetched chats", res);
-  return res.data.items || [];
 }
 
 /**
- * Socket: Subscribe to list invalidation (chat:list:dirty or message:any).
+ * Socket: Subscribe to list invalidation (chat:list:update/dirty or message:any).
  * Your callback should refetch the list using getUserChats().
  * @param {() => void} cb
  * @returns {() => void} unsubscribe
  */
 export function subscribeToUserChats(cb) {
   function attach() {
-    const onDirty = () => cb && cb();
-    const onAnyMsg = () => cb && cb();
-    socket.on("chat:list:dirty", onDirty);
-    socket.on("message:any", onAnyMsg);
+    const onUpdate = () => cb && cb();
+    socket.on("chat:list:update", onUpdate);
+    socket.on("chat:list:dirty", onUpdate);
+    socket.on("message:any", onUpdate);
     return () => {
-      socket.off("chat:list:dirty", onDirty);
-      socket.off("message:any", onAnyMsg);
+      socket.off("chat:list:update", onUpdate);
+      socket.off("chat:list:dirty", onUpdate);
+      socket.off("message:any", onUpdate);
     };
   }
 
   if (!socket) {
     let cancelled = false;
-    let detach = () => {};
+    let detach = () => { };
     _waitForSocket().then(() => {
       if (!cancelled && socket) detach = attach();
     });
@@ -203,7 +196,7 @@ export async function getMessages(chatId, limit = 30, cursor = null, getToken) {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
 
-  // our "ts.id" → backend expects ?cursorTs=&cursorId=
+  // UI cursor "ts.id" → backend expects ?cursorTs=&cursorId=
   if (cursor) {
     const [tsStr, id] = String(cursor).split(".");
     if (tsStr && id) {
@@ -231,10 +224,9 @@ export async function getMessages(chatId, limit = 30, cursor = null, getToken) {
 
 /**
  * Socket + rooms: subscribe to live messages for a chat. Joins/leaves room.
- * Listens on message:new:${chatId}, message:edit:${chatId}, message:delete:${chatId}
  * @param {string} chatId
  * @param {(event: { type: 'new'|'edit'|'delete', message?: ChatMessage, messageId?: string }) => void} cb
- * @returns {() => void} unsubscribe (leaves room and detaches listeners)
+ * @returns {() => void} unsubscribe
  */
 export function subscribeToMessages(chatId, cb) {
   function attach() {
@@ -263,7 +255,7 @@ export function subscribeToMessages(chatId, cb) {
 
   if (!socket) {
     let cancelled = false;
-    let detach = () => {};
+    let detach = () => { };
     _waitForSocket().then(() => {
       if (!cancelled && socket) detach = attach();
     });
@@ -294,36 +286,22 @@ export function sendMessage(chatId, body, getToken) {
   );
 }
 
-/**
- * Typing indicator
- */
+/** Typing indicator (socket) */
 export function setTyping(chatId, isTyping) {
   if (!socket) return;
   socket.emit("typing", { chatId, isTyping });
 }
 
-/**
- * Socket: subscribe to typing events for a chat.
- * Server should emit `typing:${chatId}` with { chatId, userId, isTyping }.
- * @param {string} chatId
- * @param {(evt: { chatId: string, userId: string, isTyping: boolean }) => void} cb
- * @returns {() => void} unsubscribe
- */
+/** Socket: subscribe to typing events */
 export function subscribeToTyping(chatId, cb) {
-  if (!socket) return () => {};
+  if (!socket) return () => { };
   const channel = `typing:${chatId}`;
   const handler = (payload) => cb && cb(payload);
   socket.on(channel, handler);
   return () => socket.off(channel, handler);
 }
 
-/**
- * REST: Mark messages as read (no-op if backend route not yet implemented)
- * @param {string} chatId
- * @param {string} messageId
- * @param {() => Promise<string>} getToken
- * @returns {Promise<{ ok: boolean }>}
- */
+/** REST: Mark messages as read (best-effort) */
 export async function markAsRead(chatId, messageId, getToken) {
   try {
     const res = await fetchJSON(
@@ -336,26 +314,15 @@ export async function markAsRead(chatId, messageId, getToken) {
     );
     return res;
   } catch {
-    // Graceful no-op fallback
     return { ok: false };
   }
 }
 
-/**
- * Ensure (or create) a direct chat with a user and return { chatId }.
- * The server reads CURRENT_USER from JWT; we only pass the other participant.
- * @param {string} userId  the other participant (ownerId)
- * @param {() => Promise<string>} getToken
- * @returns {Promise<{ chatId: string, created?: boolean }>}
- */
-export async function ensureDirectChatWith(userId, getToken) {
-  const payload = { participants: [userId] }; // backend includes the requester automatically
+/** Ensure (or create) a direct chat with a user and return { chatId } */
+export async function ensureDirectChatWith(otherUserId, getToken) {
   const data = await fetchJSON(
-    `/chats`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
+    `/chats/ensure`,
+    { method: "POST", body: JSON.stringify({ otherUserId: String(otherUserId) }) },
     getToken
   );
   const chatId = data?.chatId || data?._id;
@@ -363,27 +330,24 @@ export async function ensureDirectChatWith(userId, getToken) {
   return { chatId, created: !!data?.created };
 }
 
-/**
- * Optional convenience if you already have an array of participants (besides self).
- * @param {string[]} participants
- * @param {() => Promise<string>} getToken
- * @returns {Promise<{ chatId: string, created?: boolean }>}
- */
-export async function createOrGetChatWithParticipants(participants, getToken) {
-  if (!Array.isArray(participants) || participants.length === 0) {
-    throw new Error("participants array required");
-  }
+/** Create or get chat by participants (pet-aware) */
+// src/shared/services/chatService.js
+export async function createOrGetChatWithParticipants({ petId, otherUserId }, getToken) {
+  const payload = { otherUserId: String(otherUserId) };
+  if (petId) payload.petId = String(petId); // <-- only set when truthy
+
   const data = await fetchJSON(
-    `/chats`,
-    { method: "POST", body: JSON.stringify({ participants }) },
+    `/chats/ensure`,
+    { method: "POST", body: JSON.stringify(payload) },
     getToken
   );
   const chatId = data?.chatId || data?._id;
-  if (!chatId) throw new Error("Failed to create/get chat: missing chatId");
+  if (!chatId) throw new Error("Missing chatId");
   return { chatId, created: !!data?.created };
 }
 
-// ---------- Pawlo (uses /chat-api) ----------
+
+// ---------- Pawlo (assistant, uses /chat) ----------
 
 /**
  * Pawlo: send text + optional images to the assistant
@@ -396,20 +360,18 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
   let message, history, getToken, imageUrls;
 
   if (typeof arg1 === "object" && arg1 !== null && !Array.isArray(arg1)) {
-    // object payload form
     message = arg1.message ?? "";
     history = Array.isArray(arg1.history) ? arg1.history : [];
     imageUrls = Array.isArray(arg1.imageUrls) ? arg1.imageUrls : [];
-    getToken = arg2; // second param is the getter
+    getToken = arg2;
   } else {
-    // positional form
     message = arg1 ?? "";
     history = Array.isArray(arg2) ? arg2 : [];
     getToken = arg3;
     imageUrls = Array.isArray(arg4) ? arg4 : [];
   }
 
-  const apiBase = getPawloBase(); // absolute base, e.g. https://.../chat-api
+  const apiBase = getPawloBase(); // absolute base, e.g. http://.../chat
   const token = getToken ? await getToken() : await getTokenRef();
 
   const headers = {
@@ -417,7 +379,6 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  // Clean inputs
   const images = (Array.isArray(imageUrls) ? imageUrls : []).filter(
     (u) => typeof u === "string" && u.trim()
   );
@@ -432,23 +393,16 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
   const body = JSON.stringify({ message: text, history, imageUrls: images });
 
   const tryOnce = async (url) => {
-    try {
-      const res = await fetch(url, { method: "POST", headers, body });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        const retriable = res.status === 404 || res.status === 405;
-        const err = new Error(
-          `pawloReply ${res.status} ${res.statusText}: ${txt}`
-        );
-        err.retriable = retriable;
-        throw err;
-      }
-      const data = await res.json();
-      return data?.reply || "";
-    } catch (err) {
-      console.warn("[PAWLO] fetch failed:", err?.message || err);
+    const res = await fetch(url, { method: "POST", headers, body });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      const retriable = res.status === 404 || res.status === 405;
+      const err = new Error(`pawloReply ${res.status} ${res.statusText}: ${txt}`);
+      err.retriable = retriable;
       throw err;
     }
+    const data = await res.json();
+    return data?.reply || "";
   };
 
   try {

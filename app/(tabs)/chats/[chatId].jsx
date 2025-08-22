@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -15,18 +16,16 @@ import MessageBubble from "@/src/features/chats/components/chatIdComponents/Mess
 import ChatInput from "@/src/features/chats/components/ChatInput";
 
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
+import { useFocusEffect } from '@react-navigation/native';
 
-// 🔁 Redux auth
-import { selectJwt, selectUserId } from "@/src/features/auth/store/authSlice";
-import { useSelector } from "react-redux";
 
-// 💬 chat service
 import {
-  getMessages, // keep if you use typing indicator
+  getMessages,
   markAsRead,
   subscribeToMessages,
-  subscribeToTyping, // keep if you use typing indicator
+  subscribeToTyping,
 } from "@/src/shared/services/chatService";
+import { getAuthToken } from "@/src/shared/services/supabase/getters";
 
 export default function ChatDetailScreen() {
   const { t } = useTranslationLoader("chatId");
@@ -35,19 +34,24 @@ export default function ChatDetailScreen() {
   const { palette } = theme.colors;
   const insets = useSafeAreaInsets();
 
-  // Redux → build getToken the service expects
-  const jwt = useSelector(selectJwt);
-  const currentUserId = useSelector(selectUserId);
-  const getToken = useCallback(async () => jwt || "", [jwt]);
+  // 🔑 Build token getter
+  const getToken = useCallback(async () => (await getAuthToken()) || "", []);
+
+  // 👤 Use Profile._id saved in AsyncStorage ("user-profile")
+  const [currentUserId, setCurrentUserId] = useState("");
+  useEffect(() => {
+    AsyncStorage.getItem("user-profile").then((s) => {
+      const p = s ? JSON.parse(s) : null;
+      setCurrentUserId(p?._id ? String(p._id) : "");
+    });
+  }, []);
 
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState(null);
-  const [initialLoaded, setInitialLoaded] = useState(false);
   const listRef = useRef(null);
   const [isPeerTyping, setIsPeerTyping] = useState(false);
 
-  // Initial load
   const loadInitial = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,9 +59,7 @@ export default function ChatDetailScreen() {
       const items = Array.isArray(res.items) ? res.items : [];
       setMessages(items);
       setNextCursor(res.nextCursor || null);
-      setInitialLoaded(true);
 
-      // Mark most recent as read
       const latest = items[items.length - 1];
       if (latest?._id) {
         markAsRead(String(chatId), latest._id, getToken).catch(() => { });
@@ -66,40 +68,39 @@ export default function ChatDetailScreen() {
       setLoading(false);
     }
   }, [chatId, getToken]);
+
   const refetchNow = useCallback(async () => {
     const res = await getMessages(String(chatId), 30, null, getToken);
     setMessages(res.items);
     setNextCursor(res.nextCursor || null);
   }, [chatId, getToken]);
 
-
-  // Subscribe to live events
   useEffect(() => {
     if (!chatId) return;
     let unsubscribe = () => { };
     let unTyping = () => { };
+
     loadInitial();
 
     unsubscribe = subscribeToMessages(String(chatId), (evt) => {
       if (evt.type === "new" && evt.message) {
         setMessages((prev) => [...prev, evt.message]);
 
-        // If message is from the other user, mark as read (you're viewing this chat)
-        if (evt.message.senderId && evt.message.senderId !== currentUserId) {
+        if (evt.message.senderId && String(evt.message.senderId) !== String(currentUserId)) {
           markAsRead(String(chatId), evt.message._id, getToken).catch(() => { });
         }
       } else if (evt.type === "edit" && evt.message) {
-        setMessages((prev) => prev.map((m) => (m._id === evt.message._id ? evt.message : m)));
+        setMessages((prev) =>
+          prev.map((m) => (m._id === evt.message._id ? evt.message : m))
+        );
       } else if (evt.type === "delete" && evt.messageId) {
         setMessages((prev) => prev.filter((m) => m._id !== evt.messageId));
       }
     });
 
-    // typing
     unTyping = subscribeToTyping(String(chatId), (evt) => {
       if (!evt) return;
-      // show typing only if the event is from the *other* user
-      if (evt.userId && evt.userId !== currentUserId) {
+      if (evt.userId && String(evt.userId) !== String(currentUserId)) {
         setIsPeerTyping(!!evt.isTyping);
       }
     });
@@ -110,25 +111,42 @@ export default function ChatDetailScreen() {
     };
   }, [chatId, loadInitial, currentUserId, getToken]);
 
-  // Load older pages
+  // Mark as read when the screen gains focus and also on blur (best effort)
+  useFocusEffect(
+    useCallback(() => {
+      if (!messages.length) return;
+      const latest = messages[messages.length - 1];
+      if (latest?._id) {
+        markAsRead(String(chatId), latest._id, getToken).catch(() => { });
+      }
+    }, [chatId, messages.length, getToken])
+  );
+
   const loadOlder = useCallback(async () => {
     if (!nextCursor) return;
     const res = await getMessages(String(chatId), 30, nextCursor, getToken);
     const older = Array.isArray(res.items) ? res.items : [];
-    if (older.length) {
-      // Prepend older messages
-      setMessages((prev) => [...older, ...prev]);
-    }
+    if (older.length) setMessages((prev) => [...older, ...prev]);
     setNextCursor(res.nextCursor || null);
   }, [chatId, nextCursor, getToken]);
 
- const renderItem = useCallback(({ item }) => {
-   if (item.type === "image") {
-     return <ImageMessage item={item} currentUserId={currentUserId} />;
-   }
-   return <MessageBubble item={item} currentUserId={currentUserId} />;
- }, [currentUserId]);
+  const renderItem = useCallback(
+    ({ item }) => {
+      if (item.type === "image") {
+        return <ImageMessage item={item} currentUserId={currentUserId} />;
+      }
+      return <MessageBubble item={item} currentUserId={currentUserId} />;
+    },
+    [currentUserId]
+  );
 
+  if (loading && !messages.length) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator style={{ marginTop: 24 }} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -139,7 +157,6 @@ export default function ChatDetailScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      {/* Date Label (simple "Today" chip; optional) */}
       <Text
         style={[
           styles.todayLabel,

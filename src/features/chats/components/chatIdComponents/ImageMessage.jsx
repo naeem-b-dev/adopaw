@@ -3,21 +3,31 @@ import { useMemo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
-export default function ImageMessage({ item, currentUserId, imageSource, label, timestamp }) {
+
+export default function ImageMessage({
+  item,
+  currentUserId,
+  imageSource,
+  label,
+  timestamp,
+}) {
   const theme = useTheme();
-  const { palette } = theme.colors;
+  const palette = theme.colors?.palette || {};
 
-  // Support both old props (imageSource/label/timestamp) and new `item`
   const isFromItem = !!item;
-  const senderId = isFromItem ? item?.senderId : currentUserId; // default to current user if not provided
-  const isMine = isFromItem ? item?.senderId === currentUserId : true;
 
-  const uri =
-    isFromItem ? item?.content?.imageUrl : imageSource;
-  const name =
-    isFromItem ? item?.content?.label || label : label;
-  const createdAt =
-    isFromItem ? item?.createdAt : timestamp;
+  const myId = String(currentUserId ?? "");
+  const senderId = isFromItem ? String(item?.senderId ?? "") : myId;
+  const isMine = isFromItem ? senderId === myId : true;
+
+  const uri = isFromItem ? item?.content?.imageUrl : imageSource;
+
+  // ✅ caption fallback: label → text → prop label
+  const caption = isFromItem
+    ? (item?.content?.label ?? item?.content?.text ?? "")
+    : (label ?? "");
+
+  const createdAt = isFromItem ? item?.createdAt : timestamp;
 
   const timeLabel = useMemo(() => {
     if (!createdAt) return "";
@@ -29,9 +39,11 @@ export default function ImageMessage({ item, currentUserId, imageSource, label, 
     }
   }, [createdAt]);
 
-  const bubbleBg = isMine ? palette.blue[400] : theme.colors.surface;
+  // ✅ safe color fallbacks
+  const blue400 = (palette.blue && palette.blue[400]) || theme.colors.primary;
+  const bubbleBg = isMine ? blue400 : theme.colors.surface;
   const textColor = isMine ? theme.colors.onPrimary : theme.colors.onSurface;
-  const tsColor = isMine ? theme.colors.onPrimary : theme.colors.onSurfaceVariant || theme.colors.onSurface;
+  const tsColor = isMine ? theme.colors.onPrimary : (theme.colors.onSurfaceVariant || theme.colors.onSurface);
 
   return (
     <View
@@ -43,15 +55,25 @@ export default function ImageMessage({ item, currentUserId, imageSource, label, 
         },
       ]}
     >
-      {/* Keep old UI: image + label row */}
       {uri ? (
-        <Image source={typeof uri === "string" ? { uri } : uri} style={styles.petImage} />
+        <Image
+          source={typeof uri === "string" ? { uri } : uri}
+          style={styles.petImage}
+        />
       ) : null}
 
-      <View style={styles.labelRow}>
-        {!!name && <Text style={[styles.label, { color: textColor }]}>{name}</Text>}
-        {!!timeLabel && <Text style={[styles.timestamp, { color: tsColor }]}>{timeLabel}</Text>}
-      </View>
+      {(caption || timeLabel) ? (
+        <View style={styles.labelRow}>
+          {!!caption && (
+            <Text style={[styles.label, { color: textColor }]} numberOfLines={2}>
+              {caption}
+            </Text>
+          )}
+          {!!timeLabel && (
+            <Text style={[styles.timestamp, { color: tsColor }]}>{timeLabel}</Text>
+          )}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -64,8 +86,8 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
   },
   petImage: {
-    width: 140,
-    height: 140,
+    width: 160,
+    height: 160,
     borderRadius: 12,
   },
   labelRow: {
@@ -73,8 +95,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
   },
   label: {
+    flex: 1,
     fontFamily: "Alexandria_700Bold",
     fontSize: 14,
   },
