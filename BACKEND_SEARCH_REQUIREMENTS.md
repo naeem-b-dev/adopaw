@@ -58,7 +58,30 @@ The backend should apply filters in this order:
 2. **CATEGORY** (Secondary) - Filter by species if selected
 3. **Other filters** (Tertiary) - Age, size, gender, etc.
 
-### 6. Search Implementation Examples
+### 6. All Filter Parameters
+
+The backend should support these query parameters:
+
+#### Required Parameters:
+- `page` (number) - Page number for pagination
+- `limit` (number) - Number of items per page
+
+#### Search Parameters:
+- `search` (string) - Search term for name, breed, species, etc.
+
+#### Category Parameters:
+- `species` (string) - Pet species/category (dog, cat, rabbit, etc.)
+
+#### Filter Parameters:
+- `age` (string) - Age group (baby, young, adult, senior)
+- `size` (string) - Size (small, medium, large)
+- `gender` (string) - Gender (male, female)
+- `activity` (string) - Activity level (low, medium, high)
+- `distance` (number) - Maximum distance in kilometers
+- `status` (string) - Pet status (available, adopted, etc.)
+- `city` (string) - City/location filter
+
+### 7. Search Implementation Examples
 
 #### MongoDB Query Example:
 ```javascript
@@ -83,8 +106,12 @@ const buildQuery = (search, species, otherFilters) => {
   }
   
   // TERTIARY: Other filters
-  if (otherFilters.status) query.status = otherFilters.status;
+  if (otherFilters.age) query.ageGroup = otherFilters.age;
+  if (otherFilters.size) query.size = otherFilters.size;
   if (otherFilters.gender) query.gender = otherFilters.gender;
+  if (otherFilters.activity) query.activity = otherFilters.activity;
+  if (otherFilters.status) query.status = otherFilters.status;
+  if (otherFilters.city) query.city = otherFilters.city;
   // ... other filters
   
   return query;
@@ -95,7 +122,19 @@ const buildQuery = (search, species, otherFilters) => {
 ```javascript
 // In your GET /pet/by/ endpoint
 app.get('/pet/by/', async (req, res) => {
-  const { search, species, page = 1, limit = 10, ...otherFilters } = req.query;
+  const { 
+    search, 
+    species, 
+    age, 
+    size, 
+    gender, 
+    activity, 
+    distance, 
+    status, 
+    city,
+    page = 1, 
+    limit = 10 
+  } = req.query;
   
   let query = {};
   
@@ -116,10 +155,18 @@ app.get('/pet/by/', async (req, res) => {
   }
   
   // TERTIARY: Other filters
-  if (otherFilters.status) query.status = otherFilters.status;
-  if (otherFilters.gender) query.gender = otherFilters.gender;
-  if (otherFilters.size) query.size = otherFilters.size;
-  // ... other filters
+  if (age) query.ageGroup = age;
+  if (size) query.size = size;
+  if (gender) query.gender = gender;
+  if (activity) query.activity = activity;
+  if (status) query.status = status;
+  if (city) query.city = city;
+  
+  // Distance filter (special handling for location-based filtering)
+  if (distance) {
+    // Implement distance-based filtering logic
+    // This might require geospatial queries
+  }
   
   // Execute paginated query
   const pets = await Pet.find(query)
@@ -140,7 +187,7 @@ app.get('/pet/by/', async (req, res) => {
 });
 ```
 
-### 7. Expected Response Format
+### 8. Expected Response Format
 The search should return the same paginated response format:
 
 ```json
@@ -151,9 +198,13 @@ The search should return the same paginated response format:
       "name": "Chocolate",
       "breed": "Golden Retriever",
       "species": "dog",
-      "images": ["..."],
       "age": { "value": 2, "unit": "years" },
+      "size": "large",
+      "gender": "male",
+      "activity": "high",
+      "images": ["..."],
       "location": { "coordinates": [lng, lat] },
+      "status": "available",
       // ... other pet fields
     }
   ],
@@ -165,7 +216,7 @@ The search should return the same paginated response format:
 }
 ```
 
-### 8. Testing Scenarios
+### 9. Testing Scenarios
 
 Test these search scenarios:
 
@@ -176,17 +227,19 @@ Test these search scenarios:
 5. **Multi-language**: Search "كوكو" should find pets with Arabic names
 6. **Search + Category**: Search "chocolate" + filter by "dog" should find "Chocolate" dogs only
 7. **Search + Category**: Search "ch" + filter by "cat" should find cats with names starting with "ch"
-8. **Empty Search**: No search parameter should return all pets
-9. **Special Characters**: Handle special characters properly
+8. **Multiple Filters**: Search "ch" + category "dog" + size "large" + gender "male"
+9. **Empty Search**: No search parameter should return all pets
+10. **Special Characters**: Handle special characters properly
 
-### 9. Performance Considerations
+### 10. Performance Considerations
 
 - **Indexing**: Create text indexes on searchable fields
 - **Pagination**: Always use pagination to avoid loading too much data
 - **Caching**: Consider caching frequent search results
 - **Query Optimization**: Use proper MongoDB indexes for efficient searching
+- **Geospatial Indexes**: For distance-based filtering
 
-### 10. Integration with Frontend
+### 11. Integration with Frontend
 
 The frontend will:
 - Send search queries with 500ms debouncing
@@ -195,7 +248,8 @@ The frontend will:
 - Display appropriate "no results" messages
 - Support infinite scrolling for search results
 - Apply category filters as secondary filters
+- Send all filter parameters from the filter page
 
 ---
 
-**Note**: Search should work as the PRIMARY filter across ALL categories, with category selection being a SECONDARY filter that refines the search results.
+**Note**: Search should work as the PRIMARY filter across ALL categories, with category selection being a SECONDARY filter that refines the search results. All other filters (age, size, gender, activity, distance) should be applied as additional refinements.

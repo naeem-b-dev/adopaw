@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,7 +18,54 @@ export default function Home() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  
+  // Local filter states that can be changed independently
+  const [localSelectedCategory, setLocalSelectedCategory] = useState(null);
+  const [localSelectedAge, setLocalSelectedAge] = useState(null);
+  const [localSelectedSize, setLocalSelectedSize] = useState(null);
+  const [localSelectedGender, setLocalSelectedGender] = useState(null);
+  const [localSelectedActivity, setLocalSelectedActivity] = useState(null);
+  const [localDistance, setLocalDistance] = useState(150);
+  
+  // Sync all filters from filter page params when they change
+  useEffect(() => {
+    console.log("🔄 Filter sync effect triggered with params:", params);
+    
+    if (params.category) {
+      console.log("🔄 Category synced from filter page:", params.category);
+      setLocalSelectedCategory(params.category);
+    }
+    if (params.age) {
+      console.log("🔄 Age synced from filter page:", params.age);
+      setLocalSelectedAge(params.age);
+    } else {
+      console.log("🔄 No age param found in filter page params");
+    }
+    if (params.size) {
+      console.log("🔄 Size synced from filter page:", params.size);
+      setLocalSelectedSize(params.size);
+    }
+    if (params.gender) {
+      console.log("🔄 Gender synced from filter page:", params.gender);
+      setLocalSelectedGender(params.gender);
+    }
+    if (params.activity) {
+      console.log("🔄 Activity synced from filter page:", params.activity);
+      setLocalSelectedActivity(params.activity);
+    }
+    if (params.distance) {
+      console.log("🔄 Distance synced from filter page:", params.distance);
+      setLocalDistance(Number(params.distance));
+    }
+  }, [params.category, params.age, params.size, params.gender, params.activity, params.distance]);
+  
+  // Determine which filters to use: local selection takes priority
+  const selectedCategory = localSelectedCategory;
+  const selectedAge = localSelectedAge;
+  const selectedSize = localSelectedSize;
+  const selectedGender = localSelectedGender;
+  const selectedActivity = localSelectedActivity;
+  const selectedDistance = localDistance;
 
   // Debounced search effect
   const debounceSearch = useCallback((query) => {
@@ -37,23 +84,42 @@ export default function Home() {
     debounceSearch(text);
   }, [debounceSearch]);
 
+  // Handle category selection in home page
+  const handleCategorySelect = useCallback((category) => {
+    console.log("🐾 Home page category selected:", category);
+    setLocalSelectedCategory(category);
+  }, []);
+
   // ✅ filters passed into PetsList
   const filters = useMemo(
     () => {
       const filterObj = {
-        category: selectedCategory ?? (params.category || null),
-        age: params.age || null,
-        size: params.size || null,
-        gender: params.gender || null,
-        activity: params.activity || null,
-        distance: params.distance ? Number(params.distance) : null,
+        // All filters from local selection (can be changed independently)
+        category: selectedCategory,
+        age: selectedAge,
+        size: selectedSize,
+        gender: selectedGender,
+        activity: selectedActivity,
+        distance: selectedDistance,
+        
+        // Search: from search bar
         search: debouncedSearchQuery.trim() ? debouncedSearchQuery.trim() : null,
       };
       
       console.log("🎯 Filters object created:", filterObj);
+      console.log("📋 Filter sources:", {
+        category: selectedCategory ? `"${selectedCategory}" (local)` : 'none',
+        age: selectedAge ? `"${selectedAge}" (local)` : 'none',
+        size: selectedSize ? `"${selectedSize}" (local)` : 'none',
+        gender: selectedGender ? `"${selectedGender}" (local)` : 'none',
+        activity: selectedActivity ? `"${selectedActivity}" (local)` : 'none',
+        distance: selectedDistance ? `${selectedDistance}km (local)` : 'none',
+        search: debouncedSearchQuery.trim() || 'none'
+      });
+      
       return filterObj;
     },
-    [selectedCategory, params, debouncedSearchQuery]
+    [selectedCategory, selectedAge, selectedSize, selectedGender, selectedActivity, selectedDistance, debouncedSearchQuery]
   );
 
   return (
@@ -92,7 +158,7 @@ export default function Home() {
 
         <PetsCategories
           selected={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={handleCategorySelect}
           style={{ marginTop: 8, marginBottom: 12 }}
         />
       </View>
