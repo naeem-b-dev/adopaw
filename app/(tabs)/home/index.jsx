@@ -1,10 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location";
 import { useLocalSearchParams } from "expo-router";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,73 +13,7 @@ import SearchBar from "../../../src/features/home/components/search_bar";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 import PetsList from "../../../src/shared/components/ui/PetsList/PetsList";
 
-// Function to update user location
-const updateUserLocation = async () => {
-  try {
-    console.log("📍 Starting location update...");
-    
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.log("📍 Location permission denied");
-      Alert.alert("Location Permission", "Please enable location permission to get accurate results.");
-      return false;
-    }
 
-    console.log("📍 Getting current position with high accuracy...");
-    const loc = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.BestForNavigation, // Highest accuracy
-      timeout: 15000, // 15 seconds timeout
-      maximumAge: 0, // Don't use cached location
-    });
-
-    const coords = [loc.coords.longitude, loc.coords.latitude];
-    const geoJson = {
-      type: "Point",
-      coordinates: coords,
-    };
-
-    console.log("📍 Location obtained:", {
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-      accuracy: loc.coords.accuracy,
-      altitude: loc.coords.altitude,
-      heading: loc.coords.heading,
-      speed: loc.coords.speed,
-    });
-
-    // Get current profile
-    const profileJson = await AsyncStorage.getItem("user-profile");
-    if (profileJson) {
-      const profile = JSON.parse(profileJson);
-      
-      // Update location in profile
-      const updatedProfile = {
-        ...profile,
-        location: geoJson,
-      };
-
-      // Save updated profile
-      await AsyncStorage.setItem("user-profile", JSON.stringify(updatedProfile));
-      console.log("📍 User location updated successfully:", coords);
-      
-      // Show success message
-      Alert.alert(
-        "Location Updated", 
-        `Your location has been updated to:\nLatitude: ${loc.coords.latitude.toFixed(6)}\nLongitude: ${loc.coords.longitude.toFixed(6)}\nAccuracy: ${loc.coords.accuracy ? `${loc.coords.accuracy.toFixed(1)}m` : 'Unknown'}`
-      );
-      
-      return true;
-    } else {
-      console.log("📍 No user profile found");
-      Alert.alert("Error", "No user profile found. Please complete your profile first.");
-      return false;
-    }
-  } catch (error) {
-    console.error("📍 Error updating location:", error);
-    Alert.alert("Location Error", `Failed to get location: ${error.message}`);
-    return false;
-  }
-};
 
 export default function Home() {
   const { colors } = useTheme();
@@ -104,7 +35,6 @@ export default function Home() {
 
   // Refresh state
   const [refreshing, setRefreshing] = useState(false);
-  const [updatingLocation, setUpdatingLocation] = useState(false);
 
   // Debounced search
   const debouncedSearch = useCallback(
@@ -125,8 +55,6 @@ export default function Home() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Update location first
-      await updateUserLocation();
       // Refetch pets data
       await refetch();
     } catch (error) {
@@ -270,28 +198,6 @@ export default function Home() {
             onChangeText={handleSearchChange}
             style={[styles.searchBar, { flex: 1 }]}
           />
-          <TouchableOpacity
-            onPress={async () => {
-              setUpdatingLocation(true);
-              try {
-                const success = await updateUserLocation();
-                if (success) {
-                  // Refetch pets data with new location
-                  await refetch();
-                }
-              } finally {
-                setUpdatingLocation(false);
-              }
-            }}
-            style={styles.locationButton}
-            disabled={updatingLocation}
-          >
-            <Ionicons 
-              name={updatingLocation ? "location-outline" : "location"} 
-              size={24} 
-              color={updatingLocation ? colors.outline : colors.primary} 
-            />
-          </TouchableOpacity>
           <FilterButton style={styles.filterButton} />
         </View>
 
@@ -328,8 +234,4 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   searchRow: { flexDirection: "row", alignItems: "center", marginTop: 16 },
   filterButton: { marginLeft: 8 },
-  locationButton: {
-    marginLeft: 8,
-    padding: 8,
-  },
 });

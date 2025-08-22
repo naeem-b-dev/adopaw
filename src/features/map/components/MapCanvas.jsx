@@ -41,6 +41,8 @@ export default function MapCanvas({ region, onRegionChange, markers = [] }) {
       longitude: m.longitude,
       name: m.name,
       description: m.description,
+      isCurrentLocation: m.isCurrentLocation,
+      category: m.category,
     })),
   });
 
@@ -52,6 +54,7 @@ export default function MapCanvas({ region, onRegionChange, markers = [] }) {
     + '    <style>\n'
     + '      html, body, #map { height: 100%; margin: 0; padding: 0; }\n'
     + '      .leaflet-control-attribution { display: none; }\n'
+
     + '    </style>\n'
     + '  </head>\n'
     + '  <body>\n'
@@ -67,10 +70,55 @@ export default function MapCanvas({ region, onRegionChange, markers = [] }) {
     + '        attribution: \'\'\n'
     + '      }).addTo(map);\n'
     + '      const markersLayer = L.layerGroup().addTo(map);\n'
+    + '      function getCategoryIcon(category) {\n'
+    + '        const iconMap = {\n'
+    + '          veterinary: "⚕️",\n'
+    + '          petstore: "🏪",\n'
+    + '          shelter: "🏠",\n'
+    + '          grooming: "✂️",\n'
+    + '          emergency: "🚑",\n'
+    + '          training: "🎓",\n'
+    + '          parks: "🌳"\n'
+    + '        };\n'
+    + '        return iconMap[category] || "📍";\n'
+    + '      }\n'
+    + '      function getCategoryColor(category) {\n'
+    + '        const colorMap = {\n'
+    + '          veterinary: "#e91e63",\n'
+    + '          petstore: "#ff9800",\n'
+    + '          shelter: "#4caf50",\n'
+    + '          grooming: "#9c27b0",\n'
+    + '          emergency: "#f44336",\n'
+    + '          training: "#3f51b5",\n'
+    + '          parks: "#8bc34a"\n'
+    + '        };\n'
+    + '        return colorMap[category] || "#757575";\n'
+    + '      }\n'
     + '      function setMarkers(arr){\n'
     + '        markersLayer.clearLayers();\n'
     + '        (arr || []).forEach(m => {\n'
-    + '          const marker = L.marker([m.latitude, m.longitude]).addTo(markersLayer);\n'
+    + '          let marker;\n'
+    + '          if (m.isCurrentLocation) {\n'
+    + '            marker = L.circleMarker([m.latitude, m.longitude], {\n'
+    + '              radius: 8,\n'
+    + '              fillColor: "#2196F3",\n'
+    + '              color: "#ffffff",\n'
+    + '              weight: 3,\n'
+    + '              opacity: 1,\n'
+    + '              fillOpacity: 0.8\n'
+    + '            }).addTo(markersLayer);\n'
+    + '          } else {\n'
+    + '            const iconEmoji = getCategoryIcon(m.category);\n'
+    + '            const categoryColor = getCategoryColor(m.category);\n'
+    + '            const customIcon = L.divIcon({\n'
+    + '              className: "",\n'
+    + '              html: `<div class="custom-marker" style="background-color: ${categoryColor}; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${iconEmoji}</div>`,\n'
+    + '              iconSize: [32, 32],\n'
+    + '              iconAnchor: [16, 16],\n'
+    + '              popupAnchor: [0, -16]\n'
+    + '            });\n'
+    + '            marker = L.marker([m.latitude, m.longitude], { icon: customIcon }).addTo(markersLayer);\n'
+    + '          }\n'
     + '          if (m.name || m.description) {\n'
     + '            const txt = \'<strong>\' + (m.name ?? \'\') + \'</strong><br/>\' + (m.description ?? \'\');\n'
     + '            marker.bindPopup(txt);\n'
@@ -110,6 +158,8 @@ export default function MapCanvas({ region, onRegionChange, markers = [] }) {
       longitude: m.longitude,
       name: m.name,
       description: m.description,
+      isCurrentLocation: m.isCurrentLocation,
+      category: m.category,
     })));
     const js = 'window.__updateMarkers(' + payload + '); true;';
     try { webRef.current.injectJavaScript(js); } catch {}
