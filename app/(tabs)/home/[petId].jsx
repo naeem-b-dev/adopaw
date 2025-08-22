@@ -36,6 +36,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getReadableAddress } from "../../../src/features/home/utils/getReadbleAddress";
 import { formatTimeAgo } from "../../../src/features/home/utils/timeAgo";
 import LoadingModal from "../../../src/shared/components/ui/LoadingModal/LoadingModal";
+import { getAuthToken } from "@/src/shared/services/supabase/getters";
 
 export const unstable_settings = {
   tabBarStyle: { display: "none" },
@@ -57,8 +58,6 @@ export default function PetDetailScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const jwt = useSelector(selectJwt);
-  const getToken = useCallback(async () => jwt || "", [jwt]);
 
   const {
     data: petData,
@@ -100,7 +99,7 @@ export default function PetDetailScreen() {
       setLoading(true);
       const { chatId } = await createOrGetChatWithParticipants(
         [profile._id, petData.postedBy._id],
-        getToken
+        getAuthToken
       );
       if (!chatId) throw new Error("No chatId returned");
       router.push(`/chats/${chatId}`);
@@ -111,8 +110,6 @@ export default function PetDetailScreen() {
       setLoading(false);
     }
   };
-
-
 
   const handleEditPet = () => {
     setMenuVisible(false); // Close menu first
@@ -228,11 +225,12 @@ export default function PetDetailScreen() {
 
   const handleAdoptMe = async () => {
     try {
-      if (!petData?.postedBy?._id) throw new Error("No owner found for this pet");
+      if (!petData?.postedBy?._id)
+        throw new Error("No owner found for this pet");
       // create or get a direct chat with the owner
       const { chatId } = await createOrGetChatWithParticipants(
         [String(petData.postedBy._id)],
-        getToken
+        getAuthToken
       );
       router.push(`/chats/${chatId}`);
     } catch (e) {
@@ -458,8 +456,6 @@ export default function PetDetailScreen() {
           disabled={isOwner}
           style={styles.adoptButton}
         />
-
-
       </View>
 
       <Modal visible={isModalVisible} transparent>
@@ -472,7 +468,7 @@ export default function PetDetailScreen() {
             onScroll={(event) => {
               const newIndex = Math.round(
                 event.nativeEvent.contentOffset.x /
-                Dimensions.get("window").width
+                  Dimensions.get("window").width
               );
               setActiveIndex(newIndex);
             }}
@@ -511,14 +507,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    backgroundColor: 'lightgray',
+    backgroundColor: "lightgray",
   },
   carouselImage: {
-    width: Dimensions.get('window').width,
+    width: Dimensions.get("window").width,
     height: 350,
   },
   backIcon: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     left: 20,
     zIndex: 10,

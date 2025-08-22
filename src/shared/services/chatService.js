@@ -4,6 +4,7 @@
 // Uses EXPO_PUBLIC_BACKEND_API_URL for Pawlo REST (under /chat-api)
 // All auth flows accept a getToken() -> Promise<string> returning your JWT.
 
+import axios from "axios";
 import { io } from "socket.io-client";
 
 /**
@@ -136,14 +137,23 @@ export function initSocket(getToken) {
 // ---------- Chat list ----------
 
 /**
- * REST: Get the current user's chats.
- * @param {() => Promise<string>} getToken
- * @returns {Promise<ChatSummary[]>}
+ * Fetches the user's chat list from the server using JWT for authorization.
+ * @param {Function} getToken - A function that resolves to a JWT string.
+ * @returns {Promise<Array>} - Resolves to an array of chat items.
  */
-export function getUserChats(getToken) {
-  return fetchJSON(`/me/chats`, { method: "GET" }, getToken).then((data) =>
-    Array.isArray(data) ? data : data?.items || []
+export async function getUserChats(getToken) {
+  const token = await getToken();
+  const res = await axios.get(
+    `${process.env.EXPO_PUBLIC_BACKEND_API_URL}/chat/me/chats`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
+
+  console.log("Fetched chats", res);
+  return res.data.items || [];
 }
 
 /**
@@ -235,7 +245,8 @@ export function subscribeToMessages(chatId, cb) {
     const onNew = (message) => cb && cb({ type: "new", message });
     const onEdit = (message) => cb && cb({ type: "edit", message });
     const onDelete = (payload) =>
-      cb && cb({ type: "delete", messageId: payload?._id || payload?.messageId });
+      cb &&
+      cb({ type: "delete", messageId: payload?._id || payload?.messageId });
 
     socket.emit("chat:join", { chatId });
     socket.on(channelNew, onNew);
@@ -426,7 +437,9 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
       if (!res.ok) {
         const txt = await res.text().catch(() => "");
         const retriable = res.status === 404 || res.status === 405;
-        const err = new Error(`pawloReply ${res.status} ${res.statusText}: ${txt}`);
+        const err = new Error(
+          `pawloReply ${res.status} ${res.statusText}: ${txt}`
+        );
         err.retriable = retriable;
         throw err;
       }

@@ -31,6 +31,7 @@ export default function Profile() {
             setProfile(parsedProfile);
           } else {
             const { token, supaId } = await getAuthInfo();
+            console.log("token: ", token);
             const profileData = await fetchProfile(supaId, token);
 
             setProfile(profileData);
@@ -49,6 +50,17 @@ export default function Profile() {
       loadProfile();
     }, [])
   );
+
+  const logToken = async () => {
+    try {
+      const { token } = await getAuthInfo();
+      console.log("Auth Token:", token);
+    } catch (error) {
+      console.error("Failed to get auth token:", error);
+    }
+  };
+
+  logToken();
 
   const confirmLogout = () => {
     Alert.alert(

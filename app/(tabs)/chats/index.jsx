@@ -8,7 +8,10 @@ import ChatList from "@/src/features/chats/components/ChatListComponent/ChatList
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import Heading from "@/src/shared/components/ui/Heading/Heading";
 
-import { getUserChats, subscribeToUserChats } from "@/src/shared/services/chatService";
+import {
+  getUserChats,
+  subscribeToUserChats,
+} from "@/src/shared/services/chatService";
 
 // ✅ Redux auth (selectors only; NO store here)
 import { useSelector } from "react-redux";
@@ -30,7 +33,7 @@ export default function ChatsScreen() {
       setLoading(true);
       const data = await getUserChats(getToken);
       const me = String(jwt ? "" : ""); // we’ll get my id via server in messages; unread logic uses last sender
-      const arr = Array.isArray(raw) ? raw : (raw?.items || []);
+      const arr = Array.isArray(data) ? data : data?.items || [];
 
       // Normalize id, sort by lastMessageAt, zero unread if I am the last sender, and DEDUPE by id
       const byId = new Map();
@@ -42,31 +45,42 @@ export default function ChatsScreen() {
           ...c,
           id,
           lastMessageAt: c?.lastMessageAt || c?.updatedAt || null,
-          unreadCount: lastSender === me ? 0 : (c?.unreadCount || 0),
+          unreadCount: lastSender === me ? 0 : c?.unreadCount || 0,
         };
         byId.set(id, norm); // dedupe
       }
       const finalList = Array.from(byId.values()).sort(
-        (a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
+        (a, b) =>
+          new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0)
       );
       setChats(finalList);
-
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   }, [getToken]);
 
   useEffect(() => {
-    refetch();
-    const unsub = subscribeToUserChats(() => refetch());
-    return () => unsub();
+    let unsub;
+
+    (async () => {
+      await refetch();
+      const token = await getToken();
+      console.log(token);
+      unsub = subscribeToUserChats(() => refetch());
+    })();
+
+    return () => {
+      if (unsub) unsub();
+    };
   }, [refetch]);
 
   const handleOpenChat = (chatId) => chatId && router.push(`/chats/${chatId}`);
-
+  const token = getToken();
+      console.log(token);
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <View style={styles.headingWrapper}>
         <Heading title={t("chatsListTitle")} align="start" />
       </View>
