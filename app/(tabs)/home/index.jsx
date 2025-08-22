@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,7 +9,6 @@ import PetsCategories from "../../../src/features/home/components/pets_categorie
 import SearchBar from "../../../src/features/home/components/search_bar";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 import PetsList from "../../../src/shared/components/ui/PetsList/PetsList";
-import { getAuthToken } from "../../../src/shared/services/supabase/getters";
 
 export default function Home() {
   const params = useLocalSearchParams(); // { category, age, size, gender, activity, distance }
@@ -17,21 +16,44 @@ export default function Home() {
   const theme = useTheme();
   const { t } = useTranslationLoader("home");
 
-  const [searchQuery, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Debounced search effect
+  const debounceSearch = useCallback((query) => {
+    const timeoutId = setTimeout(() => {
+      console.log("⏰ Debounced search query updated:", query);
+      setDebouncedSearchQuery(query);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Handle search input changes
+  const handleSearchChange = useCallback((text) => {
+    console.log("🔤 Search input changed:", text);
+    setSearchQuery(text);
+    debounceSearch(text);
+  }, [debounceSearch]);
 
   // ✅ filters passed into PetsList
   const filters = useMemo(
-    () => ({
-      category: selectedCategory ?? (params.category || null),
-      age: params.age || null,
-      size: params.size || null,
-      gender: params.gender || null,
-      activity: params.activity || null,
-      distance: params.distance ? Number(params.distance) : null,
-      search: searchQuery.trim() ? searchQuery.trim() : null,
-    }),
-    [selectedCategory, params, searchQuery]
+    () => {
+      const filterObj = {
+        category: selectedCategory ?? (params.category || null),
+        age: params.age || null,
+        size: params.size || null,
+        gender: params.gender || null,
+        activity: params.activity || null,
+        distance: params.distance ? Number(params.distance) : null,
+        search: debouncedSearchQuery.trim() ? debouncedSearchQuery.trim() : null,
+      };
+      
+      console.log("🎯 Filters object created:", filterObj);
+      return filterObj;
+    },
+    [selectedCategory, params, debouncedSearchQuery]
   );
 
   return (
@@ -62,7 +84,7 @@ export default function Home() {
         <View style={styles.searchRow}>
           <SearchBar
             value={searchQuery}
-            onChangeText={setSearch}
+            onChangeText={handleSearchChange}
             style={[styles.searchBar, { flex: 1 }]}
           />
           <FilterButton style={styles.filterButton} />
@@ -77,7 +99,6 @@ export default function Home() {
 
       {/* ✅ Replaced FlatList with PetsList */}
       <PetsList
-        fetchUrl={`${process.env.EXPO_PUBLIC_BACKEND_API_URL}/pet/`}
         filters={filters}
       />
     </SafeAreaView>

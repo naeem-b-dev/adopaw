@@ -1,111 +1,148 @@
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { FlatList, Text } from "react-native";
 import { useTheme } from "react-native-paper";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthToken } from "../../../services/supabase/getters";
-import { getDistanceKm } from "../../../../features/home/utils/getDistanceKm";
+import { fetchPets } from "../../../../features/home/api/pets";
 import PetCard from "../../../../features/home/components/pet_card";
-import { useRouter } from "expo-router";
+import { useTranslationLoader } from "../../../../localization/hooks/useTranslationLoader";
 
 export default function PetsList({ fetchUrl, filters = {}, style }) {
   const theme = useTheme();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { t } = useTranslationLoader("home");
 
-  // fetcher for pets
-  const fetchPets = async () => {
-    const auth = await getAuthToken();
+  // Create a stable key for the query that changes when filters change
+  const queryKey = ["pets", "infinite", JSON.stringify(filters)];
 
-    const filteredParams = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v !== null && v !== "")
-    );
-
-    const res = await axios.get(fetchUrl, {
-      headers: {
-        Authorization: `Bearer ${auth}`,
-        "Content-Type": "application/json",
-      },
-      params: filteredParams,
-    });
-
-    // Load user profile to calculate distances
-    const profileJson = await AsyncStorage.getItem("user-profile");
-    const profile = profileJson ? JSON.parse(profileJson) : null;
-    const userCoords = profile?.location?.coordinates;
-
-    let petsWithDistance = res.data;
-
-    if (Array.isArray(petsWithDistance) && Array.isArray(userCoords)) {
-      petsWithDistance = petsWithDistance.map((pet) => {
-        const petCoords = pet.location?.coordinates;
-        if (!Array.isArray(petCoords)) return pet;
-
-        const distanceKm = getDistanceKm(userCoords, petCoords);
-        const formattedDistance =
-          distanceKm < 1
-            ? `${Math.round(distanceKm * 1000)} m`
-            : `${Math.round(distanceKm * 10) / 10} km`;
-
-        return { ...pet, distanceKm, distanceText: formattedDistance };
-      });
-    }
-
-    return petsWithDistance ?? [];
-  };
-
-  // ✅ useQuery instead of manual useEffect + useState
+  // Infinite query for pagination
   const {
-    data: pets = [],
+    data,
     isLoading,
     isFetching,
+    isFetchingNextPage,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["pets", filters], // unique key includes filters
-    queryFn: fetchPets,
-    keepPreviousData: true, // keeps old data during refetch
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey,
+    queryFn: async ({ pageParam = 1 }) => {
+      return await fetchPets(filters, pageParam, 10);
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.hasNextPage) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
+    },
+    keepPreviousData: false, // Don't keep previous data when filters change
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
+
+  // Flatten all pages into a single array
+  const allPets = data?.pages?.flatMap(page => page.items) || [];
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  const renderPetCard = ({ item }) => (
+    <PetCard
+      pet={item}
+      onPress={() => {
+        queryClient.setQueryData(["pet", item._id], item);
+        router.push(`/home/${item._id}`);
+      }}
+    />
+  );
+
+  const renderFooter = () => {
+    if (isFetchingNextPage) {
+      return (
+        <Text style={{ 
+          textAlign: "center", 
+          marginVertical: 12,
+          color: theme.colors.onSurface 
+        }}>
+          {t("loadingMorePets")}
+        </Text>
+      );
+    }
+    return null;
+  };
+
+  const renderEmpty = () => {
+    if (isLoading) {
+      return (
+        <Text style={{ 
+          textAlign: "center", 
+          marginTop: 24,
+          color: theme.colors.onSurface 
+        }}>
+          {t("loadingPets")}
+        </Text>
+      );
+    }
+    
+    if (error) {
+      return (
+        <Text style={{ 
+          textAlign: "center", 
+          marginTop: 24,
+          color: theme.colors.error 
+        }}>
+          {t("errorLoadingPets")}
+        </Text>
+      );
+    }
+
+    // Show different message for search results
+    const searchMessage = filters.search 
+      ? t("noPetsFoundForSearch", "No pets found matching your search")
+      : t("noPetsFound");
+
+    return (
+      <Text style={{ 
+        textAlign: "center", 
+        marginTop: 24,
+        color: theme.colors.onSurface 
+      }}>
+        {searchMessage}
+      </Text>
+    );
+  };
 
   return (
     <FlatList
-      data={pets}
-      keyExtractor={(item, index) => String(item.id ?? item._id ?? index)}
+      data={allPets}
+      keyExtractor={(item, index) => String(item._id ?? item.id ?? index)}
       numColumns={2}
       columnWrapperStyle={{
         justifyContent: "space-between",
         marginBottom: 12,
       }}
-      renderItem={({ item }) => (
-        <PetCard
-          pet={item}
-          onPress={() => {
-            queryClient.setQueryData(["pet", item._id], item); // ✅ update cache for detail page
-            router.push(`/home/${item._id}`);
-          }}
-        />
-      )}
-      refreshing={isFetching}
-      onRefresh={refetch}
-      ListEmptyComponent={
-        !isLoading && !error ? (
-          <Text style={{ textAlign: "center", marginTop: 24 }}>
-            No pets found
-          </Text>
-        ) : null
-      }
-      ListFooterComponent={
-        isLoading ? (
-          <Text style={{ textAlign: "center", marginVertical: 12 }}>
-            Loading…
-          </Text>
-        ) : null
-      }
+      renderItem={renderPetCard}
+      refreshing={isFetching && !isFetchingNextPage}
+      onRefresh={handleRefresh}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.1}
+      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={renderFooter}
       contentContainerStyle={{
         paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 110,
+        flexGrow: 1,
       }}
+      style={style}
     />
   );
 }
