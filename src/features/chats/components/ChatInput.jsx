@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  I18nManager,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -19,16 +20,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { selectJwt } from "@/src/features/auth/store/authSlice";
 import { sendMessage, setTyping } from "@/src/shared/services/chatService";
 import { useSelector } from "react-redux";
-
-export default function ChatInput({
-  chatId,
-  onSend,
-  onSendImage,
-}) {
+import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
+export default function ChatInput({ chatId, onSend, onSendImage }) {
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [pendingImage, setPendingImage] = useState(null);
 
+  const { t } = useTranslationLoader("chatId");
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const jwt = useSelector(selectJwt);
@@ -80,10 +78,18 @@ export default function ChatInput({
       if (chatId) {
         // DM room: send to your backend as before
         if (hasImage) {
-          await sendMessage(chatId, { type: "image", content: { imageUrl: pendingImage } }, getToken);
+          await sendMessage(
+            chatId,
+            { type: "image", content: { imageUrl: pendingImage } },
+            getToken
+          );
         }
         if (trimmed) {
-          await sendMessage(chatId, { type: "text", content: { text: trimmed } }, getToken);
+          await sendMessage(
+            chatId,
+            { type: "text", content: { text: trimmed } },
+            getToken
+          );
         }
       } else if (onSend) {
         // Pawlo flow: send BOTH in one call
@@ -106,7 +112,8 @@ export default function ChatInput({
 
   const handlePickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") return;
 
       // ✅ Compatible with old/new expo-image-picker
@@ -160,7 +167,7 @@ export default function ChatInput({
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder="Message..."
+            placeholder={t("placeholder")}
             placeholderTextColor={inputPlaceholder}
             style={[styles.input, { color: textColor }]}
             multiline
@@ -171,14 +178,20 @@ export default function ChatInput({
           {pendingImage ? (
             <View style={styles.thumbWrap}>
               <Image source={{ uri: pendingImage }} style={styles.thumb} />
-              <TouchableOpacity style={styles.thumbRemove} onPress={removePendingImage}>
+              <TouchableOpacity
+                style={styles.thumbRemove}
+                onPress={removePendingImage}
+              >
                 <Ionicons name="close" size={14} color={sendIdleFg} />
               </TouchableOpacity>
             </View>
           ) : null}
 
           {/* Image picker */}
-          <TouchableOpacity style={styles.trailingIcon} onPress={handlePickImage}>
+          <TouchableOpacity
+            style={styles.trailingIcon}
+            onPress={handlePickImage}
+          >
             <Ionicons name="image-outline" size={22} color={iconGray} />
           </TouchableOpacity>
         </View>
@@ -187,9 +200,19 @@ export default function ChatInput({
         <TouchableOpacity
           onPress={handleSend}
           disabled={!canSend}
-          style={[styles.sendButton, { backgroundColor: canSend ? sendActiveBg : sendIdleBg }]}
+          style={[
+            styles.sendButton,
+            { backgroundColor: canSend ? sendActiveBg : sendIdleBg },
+          ]}
         >
-          <Ionicons name="send" size={18} color={canSend ? sendActiveFg : sendIdleFg} />
+          <Ionicons
+            name="send"
+            size={18}
+            color={canSend ? sendActiveFg : sendIdleFg}
+            style={
+              I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined
+            }
+          />
         </TouchableOpacity>
       </View>
 

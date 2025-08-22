@@ -37,8 +37,9 @@
     "selected": "العمر المحدد"
   },
   "breed": {
-    "persian": "فارسي",
+    "persian": "شيرازي",
     "siamese": "سيامي",
+    "mixed": "مختلط",
     "maineCoon": "مين كون",
     "ragdoll": "راغدول",
     "britishShorthair": "بريطاني قصير الشعر",

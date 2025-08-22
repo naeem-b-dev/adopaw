@@ -49,6 +49,7 @@ export const PET_BREEDS = {
     { key: "abyssinian" },
     { key: "scottishFold" },
     { key: "burmese" },
+    { key: "mixed" },
     { key: "americanShorthair" },
     { key: "norwegianForest" },
     { key: "siberian" },

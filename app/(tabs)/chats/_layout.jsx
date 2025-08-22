@@ -2,7 +2,7 @@
 import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { TouchableOpacity } from "react-native";
+import { I18nManager, TouchableOpacity } from "react-native";
 import { useTheme } from "react-native-paper";
 
 export default function ChatsLayout() {
@@ -20,10 +20,7 @@ export default function ChatsLayout() {
       }}
     >
       {/* Chats list */}
-      <Stack.Screen
-        name="index"
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
 
       {/* Chat detail: title comes from route params */}
       <Stack.Screen
@@ -40,7 +37,7 @@ export default function ChatsLayout() {
               style={{ marginLeft: 15, padding: 5 }}
             >
               <Ionicons
-                name="arrow-back"
+                name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
                 size={24}
                 color={theme.colors.onSurface}
               />

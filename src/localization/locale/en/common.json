@@ -38,6 +38,7 @@
   },
   "breed": {
     "persian": "Persian",
+    "mixed": "Mixed",
     "siamese": "Siamese",
     "maineCoon": "Maine Coon",
     "ragdoll": "Ragdoll",

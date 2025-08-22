@@ -249,7 +249,7 @@ export default function PetDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.backIcon}>
           <View style={styles.backIconWrapper}>
             <Ionicons
-              name="arrow-back"
+              name="arrow-forward"
               size={24}
               color={theme.colors.palette.blue[500]}
             />
