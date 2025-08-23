@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ActivityIndicator, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import DraggableBottomSheet from "../../../src/features/map/components/DraggableBottomSheet";
 import LocationCategories, { locationCategories } from "../../../src/features/map/components/LocationCategories";
 import MapCanvas from "../../../src/features/map/components/MapCanvas";
+import { NearestPlacesList } from "../../../src/features/map/components/PlaceCard";
 import RecenterButton from "../../../src/features/map/components/RecenterButton";
 import places from "../../../src/features/map/data/places.json";
 import { useCurrentLocation } from "../../../src/features/map/hooks/useCurrentLocation";
@@ -74,13 +76,23 @@ export default function MapPage() {
     }));
   };
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={StyleSheet.absoluteFill}>
-        <MapCanvas region={region || undefined} onRegionChange={setRegion} markers={filteredMarkers} />
-      </View>
+  // Handle place card press - center map on selected place
+  const handlePlacePress = (place) => {
+    panTo(place.latitude, place.longitude, 0.01);
+  };
 
-      <View style={{ paddingTop: 8, paddingHorizontal: 16 }}>
+  // Extract only the place data (without current location marker) for the places list
+  const placesForList = useMemo(() => {
+    return filteredMarkers.filter(marker => !marker.isCurrentLocation);
+  }, [filteredMarkers]);
+
+  return (
+    <View style={styles.container}>
+      {/* Full Screen Map */}
+      <MapCanvas region={region || undefined} onRegionChange={setRegion} markers={filteredMarkers} />
+      
+      {/* Map Overlay Controls */}
+      <SafeAreaView style={styles.mapOverlay}>
         <TextInput
           mode="outlined"
           value={q}
@@ -104,7 +116,7 @@ export default function MapPage() {
           onSelect={setSelectedCategory}
           style={{ marginTop: 12, marginBottom: 8 }}
         />
-      </View>
+      </SafeAreaView>
 
       <RecenterButton
         onPress={async () => {
@@ -118,7 +130,7 @@ export default function MapPage() {
             setUpdatingLocation(false);
           }
         }}
-        style={{ position: "absolute", right: 16, bottom: 90 + insets.bottom }}
+        style={{ position: "absolute", right: 16, bottom: 200 + insets.bottom }}
         disabled={updatingLocation}
         loading={updatingLocation}
       />
@@ -129,11 +141,28 @@ export default function MapPage() {
           <Text variant="labelMedium" style={{ color: theme.colors.error }}>{error}</Text>
         </View>
       ) : null}
-    </SafeAreaView>
+
+      {/* Draggable Bottom Sheet with Places List */}
+      <DraggableBottomSheet>
+        <NearestPlacesList
+          places={placesForList}
+          userLocation={coords}
+          selectedCategory={selectedCategory}
+          onPlacePress={handlePlacePress}
+        />
+      </DraggableBottomSheet>
+    </View>
   );
 }
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  loader: { position: "absolute", top: 16, alignSelf: "center" },
-  error: { position: "absolute", top: 70, alignSelf: "center" },
+  mapOverlay: {
+    position: "absolute",
+    top: 8,
+    left: 16,
+    right: 16,
+    zIndex: 1000,
+  },
+  loader: { position: "absolute", top: 16, alignSelf: "center", zIndex: 1001 },
+  error: { position: "absolute", top: 70, alignSelf: "center", zIndex: 1001 },
 });
