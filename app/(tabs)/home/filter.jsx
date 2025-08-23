@@ -24,6 +24,13 @@ export default function FilterScreen() {
               },
             })
           }
+          // Pass all current filter values from home page to sync
+          initialCategory={params.category}
+          initialAge={params.age}
+          initialSize={params.size}
+          initialGender={params.gender}
+          initialActivity={params.activity}
+          initialDistance={params.distance ? Number(params.distance) : 150}
         />
       </SafeAreaView>
     </>

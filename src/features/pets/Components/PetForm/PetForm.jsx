@@ -1,36 +1,35 @@
-import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
-  View,
+  I18nManager,
   Image,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  I18nManager,
+  View,
 } from "react-native";
-import { Text, useTheme, IconButton } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
-
-import MapView, { Marker } from "react-native-maps";
+import { IconButton, Text, useTheme } from "react-native-paper";
 import { useTranslationLoader } from "../../../../localization/hooks/useTranslationLoader";
-import { pickMultipleImages } from "../../../../shared/utils/pickImages";
-import InputLabel from "../../../../shared/components/ui/InputLabel/InputLabel";
+import AppButton from "../../../../shared/components/ui/AppButton/AppButton";
 import AppInput from "../../../../shared/components/ui/AppInput/AppInput";
-import SpecieSelect from "../../../addPet/Components/SpecieSelect/SpecieSelect";
-import BreedSelect from "../../../addPet/Components/BreedSelect/BreedSelect";
-import ColorSelect from "../../../addPet/Components/ColorSelect/ColorSelect";
-import PetAgeInput from "../../../addPet/Components/AgeInput/AgeInput";
-import StandardSelect from "../../../addPet/Components/StandardSelect/StandardSelect";
+import SelectOption from "../../../../shared/components/ui/CustomSelect/SelectOption";
+import InputLabel from "../../../../shared/components/ui/InputLabel/InputLabel";
+import WebMapPreview from "../../../../shared/components/ui/WebMap/WebMapPreview";
 import {
   activityOption,
   gender,
   sizeOptions,
 } from "../../../../shared/constants/prefs";
-import SelectOption from "../../../../shared/components/ui/CustomSelect/SelectOption";
-import PetHealthCheckboxes from "../../../addPet/Components/PetHealthCheckboxes/PetHealthCheckboxes";
-import LocationInput from "../../../auth/components/LocationInput/LocationInput";
+import { pickMultipleImages } from "../../../../shared/utils/pickImages";
+import PetAgeInput from "../../../addPet/Components/AgeInput/AgeInput";
+import BreedSelect from "../../../addPet/Components/BreedSelect/BreedSelect";
+import ColorSelect from "../../../addPet/Components/ColorSelect/ColorSelect";
 import MapPicker from "../../../addPet/Components/MapPicker/MapPicker";
 import MapPickerModal from "../../../addPet/Components/MapPicker/MapPickerModal";
-import AppButton from "../../../../shared/components/ui/AppButton/AppButton";
+import PetHealthCheckboxes from "../../../addPet/Components/PetHealthCheckboxes/PetHealthCheckboxes";
+import SpecieSelect from "../../../addPet/Components/SpecieSelect/SpecieSelect";
+import StandardSelect from "../../../addPet/Components/StandardSelect/StandardSelect";
+import LocationInput from "../../../auth/components/LocationInput/LocationInput";
 
 export default function PetForm({
   initialData = null,
@@ -395,24 +394,11 @@ export default function PetForm({
         <InputLabel text={t("location.label", { ns: "common" })} />
         {location && (
           <View style={{ marginTop: 12 }}>
-            <MapView
+            <WebMapPreview
+              latitude={location.geoJson.coordinates[1]}
+              longitude={location.geoJson.coordinates[0]}
               style={{ height: 200, borderRadius: 12, overflow: "hidden" }}
-              region={{
-                latitude: location.geoJson.coordinates[1],
-                longitude: location.geoJson.coordinates[0],
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }}
-              scrollEnabled={false}
-              zoomEnabled={false}
-            >
-              <Marker
-                coordinate={{
-                  latitude: location.geoJson.coordinates[1],
-                  longitude: location.geoJson.coordinates[0],
-                }}
-              />
-            </MapView>
+            />
             {/* Action Buttons */}
             <View
               style={{

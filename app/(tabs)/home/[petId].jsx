@@ -1,6 +1,6 @@
 // app/(tabs)/home/[petId].jsx
+import WebMapPreview from "@/src/shared/components/ui/WebMap/WebMapPreview";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -13,10 +13,10 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { Menu, Text, useTheme, Snackbar } from "react-native-paper";
 import MapView, { Marker } from "react-native-maps";
-import { Menu, Snackbar, Text, useTheme } from "react-native-paper";
-
-import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 
 import AboutText from "@/src/features/pets/Components/PetDetails/AboutText";
 import PetChips from "@/src/features/pets/Components/PetDetails/PetChips";
@@ -412,28 +412,13 @@ export default function PetDetailScreen() {
 
           {location?.coordinates && (
             <>
-              <MapView
+              <WebMapPreview
+                latitude={location.coordinates[1]}
+                longitude={location.coordinates[0]}
+                title={name}
+                description={readableAddress}
                 style={styles.map}
-                initialRegion={{
-                  latitude: location.coordinates[1],
-                  longitude: location.coordinates[0],
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                scrollEnabled={false}
-                zoomEnabled={false}
-                pitchEnabled={false}
-                rotateEnabled={false}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: location.coordinates[1],
-                    longitude: location.coordinates[0],
-                  }}
-                  title={name}
-                  description={readableAddress}
-                />
-              </MapView>
+              />
 
               <View style={styles.locationInfoRow}>
                 <Ionicons name="location-outline" size={18} color="#6c757d" style={{ marginRight: 6 }} />
