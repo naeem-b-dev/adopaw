@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { FlatList, Text } from "react-native";
-import { useTheme } from "react-native-paper";
+import { FlatList } from "react-native";
+import { useTheme, Text } from "react-native-paper";
 import { fetchPets } from "../../../../features/home/api/pets";
 import PetCard from "../../../../features/home/components/pet_card";
 import { useTranslationLoader } from "../../../../localization/hooks/useTranslationLoader";
@@ -28,7 +28,7 @@ export default function PetsList({ fetchUrl, filters = {}, style }) {
   } = useInfiniteQuery({
     queryKey,
     queryFn: async ({ pageParam = 1 }) => {
-      return await fetchPets(filters, pageParam, 10);
+      return await fetchPets(filters, pageParam, 10, undefined, fetchUrl); // ← pass fetchUrl
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.hasNextPage) {
@@ -36,11 +36,11 @@ export default function PetsList({ fetchUrl, filters = {}, style }) {
       }
       return undefined;
     },
-    keepPreviousData: false, // Don't keep previous data when filters change
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    keepPreviousData: false,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
+  
   // Flatten all pages into a single array
   const allPets = data?.pages?.flatMap(page => page.items) || [];
 

@@ -13,8 +13,6 @@ import SearchBar from "../../../src/features/home/components/search_bar";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 import PetsList from "../../../src/shared/components/ui/PetsList/PetsList";
 
-
-
 export default function Home() {
   const { colors } = useTheme();
   const { t } = useTranslationLoader("home");
@@ -67,42 +65,42 @@ export default function Home() {
   // Sync filters from filter page
   useEffect(() => {
     console.log("🔄 Filter sync effect triggered with params:", params);
-    
+
     if (params.category) {
       console.log("🔄 Category synced from filter page:", params.category);
       setLocalSelectedCategory(params.category);
     } else {
       console.log("🔄 No category param found in filter page params");
     }
-    
+
     if (params.age) {
       console.log("🔄 Age synced from filter page:", params.age);
       setLocalSelectedAge(params.age);
     } else {
       console.log("🔄 No age param found in filter page params");
     }
-    
+
     if (params.size) {
       console.log("🔄 Size synced from filter page:", params.size);
       setLocalSelectedSize(params.size);
     } else {
       console.log("🔄 No size param found in filter page params");
     }
-    
+
     if (params.gender) {
       console.log("🔄 Gender synced from filter page:", params.gender);
       setLocalSelectedGender(params.gender);
     } else {
       console.log("🔄 No gender param found in filter page params");
     }
-    
+
     if (params.activity) {
       console.log("🔄 Activity synced from filter page:", params.activity);
       setLocalSelectedActivity(params.activity);
     } else {
       console.log("🔄 No activity param found in filter page params");
     }
-    
+
     if (params.distance) {
       console.log("🔄 Distance synced from filter page:", params.distance);
       setLocalDistance(params.distance);
