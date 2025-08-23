@@ -1,7 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import { supabase } from "./client";
 
-
 /**
  * Uploads an image to Supabase storage using Expo FileSystem
  * @param {string} imageUri - The URI of the image to upload
@@ -83,7 +82,7 @@ export const uploadImageToSupabase = async (imageUri, bucketName) => {
     console.error("Error uploading image to Supabase:", error);
     throw error;
   }
-}
+};
 
 /** One bucket (make sure it exists in Supabase → Storage and allow public read) */
 const BUCKET = process.env.EXPO_PUBLIC_SB_BUCKET || "chat-uploads";
@@ -131,22 +130,22 @@ export async function uploadChatImage(localUri, pathPrefix = "pawlo") {
   const path = `${pathPrefix}/${filename}`;
   const contentType = guessMime(localUri);
 
-  const { error: upErr } = await supabase
-    .storage
+  const { error: upErr } = await supabase.storage
     .from(BUCKET)
     .upload(path, ab, { contentType, upsert: false });
 
   if (upErr) throw upErr;
 
   // Always return a signed URL so it works for private buckets too
-  const { data: signed, error: signErr } =
-    await supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+  const { data: signed, error: signErr } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
 
   if (signErr || !signed?.signedUrl)
-    throw new Error(`Could not create signed URL: ${signErr?.message || "unknown"}`);
+    throw new Error(
+      `Could not create signed URL: ${signErr?.message || "unknown"}`
+    );
 
   console.log("[UPLOAD] signedUrl →", signed.signedUrl);
   return { publicUrl: signed.signedUrl, path };
 }
-
-;

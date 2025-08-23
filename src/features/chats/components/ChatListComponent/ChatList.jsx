@@ -1,74 +1,70 @@
 // src/features/chats/components/ChatListComponent/ChatList.jsx
-import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
-import { List, Text } from "react-native-paper";
-
+import { List, Text, useTheme } from "react-native-paper";
 import AiAssistantCard from "./AiAssistantCard";
 import ChatCard from "./ChatCardTemp";
-
-// Optional avatar image for Pawlo (remove if your AiAssistantCard has a default)
 import pawloImage from "@/assets/images/itspawlo.png";
 
-export default function ChatList({
-  chats = [],
-  onPressChat,
-  emptyTitle,
-  emptySubtitle,
-  photoLabel,
-}) {
+export default function ChatList({ chats = [], onPressChat, emptyTitle, emptySubtitle, photoLabel }) {
+  const theme = useTheme();
   const router = useRouter();
-  const { t } = useTranslationLoader("chatlist");
 
-  useEffect(() => {
-    // console.log("✅ ChatList mounted");
-  }, []);
+  // ✅ Dedupe & sort
+  const data = useMemo(() => {
+    const map = new Map();
+    for (const c of chats) {
+      const id = String(c?._id || c?.chatId || "");
+      if (!id) continue;
+      map.set(id, c);
+    }
+    return Array.from(map.values()).sort(
+      (a, b) =>
+        new Date(b?.lastMessageAt || b?.updatedAt || 0) -
+        new Date(a?.lastMessageAt || a?.updatedAt || 0)
+    );
+  }, [chats]);
 
   const toPreview = useCallback(
     (chat) => {
       const last = chat?.lastMessage;
       if (!last) return "";
       if (last.type === "text") return last?.content?.text ?? "";
-      if (last.type === "image") return photoLabel || t("photoLabel");
+      if (last.type === "image") return photoLabel || "Photo";
       return "";
     },
-    [photoLabel, t]
+    [photoLabel]
   );
 
   const toTimestamp = useCallback((chat) => {
-    const iso = chat?.lastMessage?.createdAt || chat?.updatedAt;
+    const iso = chat?.lastMessage?.createdAt || chat?.lastMessageAt || chat?.updatedAt;
     if (!iso) return "";
-    try {
-      const d = new Date(iso);
-      return d.toLocaleString();
-    } catch {
-      return "";
-    }
+    const d = new Date(iso);
+    return d.toLocaleString();
   }, []);
 
   const goToChat = useCallback(
     (chatId, name) => {
-      if (onPressChat) {
-        onPressChat(chatId);
-        return;
-      }
+      if (onPressChat) return onPressChat(chatId);
       router.push({ pathname: "/chats/[chatId]", params: { chatId, title: name } });
     },
     [onPressChat, router]
   );
 
   const renderChatItem = ({ item }) => {
-    const chatId = item?._id || item?.id;
-    const name = item?.name || t("chatWith", { count: 1 });
-    const message = item?.message ?? toPreview(item);
-    const timestamp = item?.timestamp ?? toTimestamp(item);
+    const chatId = String(item?._id || item?.chatId);
+    // ✅ pull from server-provided peer object
+    const name = item?.peer?.name || item?.peer?.email || "User";
+    const avatar = item?.peer?.avatarUrl || undefined;
+    const message = toPreview(item);
+    const timestamp = toTimestamp(item);
     const unreadCount = item?.unreadCount ?? 0;
 
     return (
       <ChatCard
         key={chatId}
-        avatar={item?.avatar}
+        avatar={avatar}
         name={name}
         message={message}
         timestamp={timestamp}
@@ -81,27 +77,25 @@ export default function ChatList({
   return (
     <FlatList
       contentContainerStyle={styles.listContent}
-      data={chats}
-      keyExtractor={(item) => String(item?._id || item?.id)}
+      data={data}
+      keyExtractor={(item) => String(item?._id || item?.chatId)}
       renderItem={renderChatItem}
-      // Always show Pawlo at the top
       ListHeaderComponent={
         <View style={styles.headerWrap}>
           <AiAssistantCard
             avatar={pawloImage}
-            name={t("pawloName")}
-            message={t("pawloSubtitle")}
+            name="Pawlo"
+            message="Ask me anything about adoption"
             onPress={() => router.push("/chats/pawlo")}
           />
         </View>
       }
-      // Empty state still shows (under the Pawlo card)
       ListEmptyComponent={
         <View style={styles.emptyWrap}>
-          <List.Icon icon="chat-outline" />
-          <Text variant="titleMedium">{emptyTitle || t("emptyTitle")}</Text>
+          <List.Icon icon="chat-outline" color={theme.colors.onSurfaceVariant} />
+          <Text variant="titleMedium">{emptyTitle || "No messages yet"}</Text>
           <Text variant="bodyMedium" style={styles.emptySub}>
-            {emptySubtitle || t("emptySubtitle")}
+            {emptySubtitle || "Start a conversation from a pet page"}
           </Text>
         </View>
       }
@@ -113,19 +107,8 @@ export default function ChatList({
 }
 
 const styles = StyleSheet.create({
-  listContent: {
-    paddingBottom: 80,
-    paddingTop: 8,
-  },
-  headerWrap: {
-    marginBottom: 4,
-  },
-  emptyWrap: {
-    paddingTop: 24,
-    paddingHorizontal: 20,
-    gap: 6,
-  },
-  emptySub: {
-    opacity: 0.7,
-  },
+  listContent: { paddingBottom: 80, paddingTop: 8 },
+  headerWrap: { marginBottom: 4 },
+  emptyWrap: { paddingTop: 24, paddingHorizontal: 20, gap: 6 },
+  emptySub: { opacity: 0.7 },
 });

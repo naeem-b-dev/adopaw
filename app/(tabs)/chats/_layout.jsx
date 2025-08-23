@@ -1,19 +1,21 @@
 // app/(tabs)/chats/_layout.jsx
-import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
-import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { I18nManager, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "react-native-paper";
+import { useTranslationLoader } from "@/src/localization/hooks/useTranslationLoader";
 
 export default function ChatsLayout() {
   const theme = useTheme();
   const router = useRouter();
   const { t } = useTranslationLoader("chatId");
 
+  const goToList = () => router.replace("/chats");
+
   return (
     <Stack
+      initialRouteName="index"
       screenOptions={{
-        headerShown: false,
         headerStyle: { backgroundColor: theme.colors.surface },
         headerTintColor: theme.colors.onSurface,
         headerTitleStyle: { fontWeight: "bold" },
@@ -22,15 +24,15 @@ export default function ChatsLayout() {
       {/* Chats list */}
       <Stack.Screen name="index" options={{ headerShown: false }} />
 
-      {/* Chat detail: title comes from route params */}
+      {/* Chat detail */}
       <Stack.Screen
         name="[chatId]"
         options={({ route }) => ({
           headerShown: true,
-          // Prefer a provided display name; otherwise fallback to i18n "Chat"
           title: route.params?.title ?? t("chatTitle"),
-          headerBackTitle: t("backToChats"),
-          animation: "slide_from_right",
+          // Make sure leaving the chat resets it so the tab won't reopen it later
+          unmountOnBlur: true,
+          // Force back to list (not the pet page)
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => router.back()}
@@ -46,24 +48,16 @@ export default function ChatsLayout() {
         })}
       />
 
-      {/* Pawlo screen: static localized title */}
+      {/* Pawlo assistant */}
       <Stack.Screen
         name="pawlo"
         options={{
           headerShown: true,
           title: t("pawloTitle"),
-          headerBackTitle: t("backToChats"),
-          animation: "slide_from_right",
+          unmountOnBlur: true,
           headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ marginLeft: 15, padding: 5 }}
-            >
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={theme.colors.onSurface}
-              />
+            <TouchableOpacity onPress={goToList} style={{ marginLeft: 15, padding: 5 }}>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.onSurface} />
             </TouchableOpacity>
           ),
         }}

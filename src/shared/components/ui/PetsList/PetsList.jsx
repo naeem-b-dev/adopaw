@@ -1,5 +1,5 @@
-import { FlatList, Text } from "react-native";
-import { useTheme } from "react-native-paper";
+import { FlatList } from "react-native";
+import { useTheme, Text } from "react-native-paper";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,45 +14,51 @@ export default function PetsList({ fetchUrl, filters = {}, style }) {
   const router = useRouter();
 
   // fetcher for pets
-  const fetchPets = async () => {
-    const auth = await getAuthToken();
+const fetchPets = async () => {
+  const auth = await getAuthToken();
 
-    const filteredParams = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v !== null && v !== "")
-    );
+  const filteredParams = Object.fromEntries(
+    Object.entries(filters).filter(([_, v]) => v !== null && v !== "")
+  );
 
-    const res = await axios.get(fetchUrl, {
-      headers: {
-        Authorization: `Bearer ${auth}`,
-        "Content-Type": "application/json",
-      },
-      params: filteredParams,
+  const res = await axios.get(fetchUrl, {
+    headers: {
+      Authorization: `Bearer ${auth}`,
+      "Content-Type": "application/json",
+    },
+    params: filteredParams,
+  });
+
+  // Load user profile to calculate distances
+  const profileJson = await AsyncStorage.getItem("user-profile");
+  const profile = profileJson ? JSON.parse(profileJson) : null;
+  const userCoords = profile?.location?.coordinates;
+
+  // 👇 Choose correct data source
+  let petsWithDistance = Array.isArray(res.data?.docs)
+    ? res.data.docs
+    : Array.isArray(res.data)
+      ? res.data
+      : [];
+
+  if (Array.isArray(petsWithDistance) && Array.isArray(userCoords)) {
+    petsWithDistance = petsWithDistance.map((pet) => {
+      const petCoords = pet.location?.coordinates;
+      if (!Array.isArray(petCoords)) return pet;
+
+      const distanceKm = getDistanceKm(userCoords, petCoords);
+      const formattedDistance =
+        distanceKm < 1
+          ? `${Math.round(distanceKm * 1000)} m`
+          : `${Math.round(distanceKm * 10) / 10} km`;
+
+      return { ...pet, distanceKm, distanceText: formattedDistance };
     });
+  }
 
-    // Load user profile to calculate distances
-    const profileJson = await AsyncStorage.getItem("user-profile");
-    const profile = profileJson ? JSON.parse(profileJson) : null;
-    const userCoords = profile?.location?.coordinates;
+  return petsWithDistance ?? [];
+};
 
-    let petsWithDistance = res.data;
-
-    if (Array.isArray(petsWithDistance) && Array.isArray(userCoords)) {
-      petsWithDistance = petsWithDistance.map((pet) => {
-        const petCoords = pet.location?.coordinates;
-        if (!Array.isArray(petCoords)) return pet;
-
-        const distanceKm = getDistanceKm(userCoords, petCoords);
-        const formattedDistance =
-          distanceKm < 1
-            ? `${Math.round(distanceKm * 1000)} m`
-            : `${Math.round(distanceKm * 10) / 10} km`;
-
-        return { ...pet, distanceKm, distanceText: formattedDistance };
-      });
-    }
-
-    return petsWithDistance ?? [];
-  };
 
   // ✅ useQuery instead of manual useEffect + useState
   const {
@@ -89,14 +95,26 @@ export default function PetsList({ fetchUrl, filters = {}, style }) {
       onRefresh={refetch}
       ListEmptyComponent={
         !isLoading && !error ? (
-          <Text style={{ textAlign: "center", marginTop: 24 }}>
+          <Text
+            style={{
+              textAlign: "center",
+              marginTop: 24,
+              color: theme.colors.text,
+            }}
+          >
             No pets found
           </Text>
         ) : null
       }
       ListFooterComponent={
         isLoading ? (
-          <Text style={{ textAlign: "center", marginVertical: 12 }}>
+          <Text
+            style={{
+              textAlign: "center",
+              marginVertical: 12,
+              color: theme.colors.text,
+            }}
+          >
             Loading…
           </Text>
         ) : null
