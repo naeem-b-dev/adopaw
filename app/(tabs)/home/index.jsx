@@ -34,6 +34,8 @@ export default function Home() {
     [selectedCategory, params, searchQuery]
   );
 
+
+  console.log(process.env.EXPO_PUBLIC_BACKEND_API_URL)
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}

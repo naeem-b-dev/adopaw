@@ -1,78 +1,58 @@
 // src/shared/services/chatService.js
 // Frontend service layer for chats (Expo RN + Socket.IO + REST)
-// User-to-user chat REST lives under EXPO_PUBLIC_API_BASE (e.g. http://<host>:5000/chat-api)
-// Assistant (Pawlo) REST lives under EXPO_PUBLIC_PAWLO_API_BASE (e.g. http://<host>:5000/chat)
-// All auth flows accept a getToken() -> Promise<string> returning your Supabase access_token.
 
 import { io } from "socket.io-client";
 
 /**
  * @typedef {{ _id: string, chatId: string, senderId: string, role?: string, type: 'text'|'image', content: { text?: string, imageUrl?: string }, createdAt: string, status?: 'sending'|'sent'|'delivered'|'read' }} ChatMessage
- * @typedef {{ _id: string, participants?: string[], lastMessage?: ChatMessage|null, unreadCount?: number, lastMessageAt?: string|null, updatedAt?: string|null }} ChatSummary
+ * @typedef {{ _id: string, participants?: string[], lastMessage?: ChatMessage|null, unreadCount?: number, lastMessageAt?: string|null, updatedAt?: string|null, peer?: any, petId?: string|null }} ChatSummary
  */
 
-// ---------- Env resolution helpers ----------
-
+// ---------- Env helpers ----------
 function getApiBase() {
-  // EXPO_PUBLIC_API_BASE should be like: http://192.168.0.7:5000/chat-api
   const baseA = process.env.EXPO_PUBLIC_API_BASE;
   if (baseA) return baseA.replace(/\/$/, "");
-
-  // Fallback for dev if you only set EXPO_PUBLIC_BACKEND_API_URL
   const be = process.env.EXPO_PUBLIC_BACKEND_API_URL;
   if (be) return `${be.replace(/\/$/, "")}/chat-api`;
-
-  throw new Error(
-    "chatService: Missing API base. Set EXPO_PUBLIC_API_BASE to your /chat-api base."
-  );
+  throw new Error("chatService: Missing API base. Set EXPO_PUBLIC_API_BASE.");
 }
-
-// Pawlo (assistant) lives under /chat
 function getPawloBase() {
   const explicit = process.env.EXPO_PUBLIC_PAWLO_API_BASE;
   if (explicit) return explicit.replace(/\/$/, "");
-
   const be = process.env.EXPO_PUBLIC_BACKEND_API_URL;
   if (be) return `${be.replace(/\/$/, "")}/chat`;
-
-  // Last resort: reuse chat base (may be wrong prefix)
   return getApiBase();
 }
-
 function getWsBase() {
   const ws = process.env.EXPO_PUBLIC_WS_URL;
-  if (ws) return ws;
-
+  if (ws) return ws; // e.g. https://api.example.com
   const api = getApiBase();
   try {
     const u = new URL(api);
     const proto = u.protocol === "https:" ? "wss:" : "ws:";
-    return `${proto}//${u.host}`;
+    return `${proto}//${u.host}`; // default Socket.IO path /socket.io
   } catch {
     return "";
   }
 }
 
-// ---------- Socket singleton + auth token hook ----------
-
+// ---------- Socket singleton ----------
 let socket = null;
 /** @type {() => Promise<string>} */
 let getTokenRef = async () => "";
 
-// Simple readiness gate so early subscribers don't crash
+// readiness gate so early subscribers don't crash
 let _readyResolvers = [];
 function _resolveReady() {
-  if (_readyResolvers.length) {
-    _readyResolvers.forEach((r) => r());
-    _readyResolvers = [];
-  }
+  _readyResolvers.forEach((r) => r());
+  _readyResolvers = [];
 }
 function _waitForSocket() {
   if (socket) return Promise.resolve();
   return new Promise((res) => _readyResolvers.push(res));
 }
 
-/** Internal: authorized fetch wrapper (CHAT REST) */
+// authorized fetch wrapper (CHAT REST)
 async function fetchJSON(path, opts = {}, getToken) {
   const base = getApiBase();
   const token = await (getToken ? getToken() : getTokenRef());
@@ -94,40 +74,49 @@ async function fetchJSON(path, opts = {}, getToken) {
 
 /**
  * Initialize the singleton Socket.IO client.
- * Call once (when you have a valid session token) and again if session changes.
+ * IMPORTANT: set socket.auth BEFORE connect (server reads handshake.auth.token).
  * @param {() => Promise<string>} getToken
  */
-export function initSocket(getToken) {
+export async function initSocket(getToken) {
   getTokenRef = getToken;
 
-  // Recreate if already connected
   if (socket) {
+    try {
+      socket.offAny();
+    } catch {}
     socket.disconnect();
     socket = null;
   }
 
   const WS_BASE = getWsBase();
-  if (!WS_BASE) {
-    // You can still use REST without WS.
-    return null;
-  }
+  if (!WS_BASE) return null; // REST-only fallback is fine
 
   socket = io(WS_BASE, {
     transports: ["websocket"],
-    autoConnect: true,
+    autoConnect: false, // we connect after setting auth
     forceNew: true,
-    auth: async (cb) => {
-      try {
-        const token = await getTokenRef();
-        cb({ token });
-      } catch {
-        cb({ token: "" });
-      }
-    },
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelayMax: 5000,
+    // path: "/socket.io", // set both sides if you customize
   });
 
-  socket.on("connect_error", () => {
-    // console.warn("socket connect_error", _err?.message);
+  try {
+    const token = await getTokenRef();
+    socket.auth = { token };
+  } catch {
+    socket.auth = { token: "" };
+  }
+  socket.connect();
+
+  // refresh token on reconnect attempts
+  socket.io.on("reconnect_attempt", async () => {
+    try {
+      const fresh = await getTokenRef();
+      socket.auth = { token: fresh };
+    } catch {
+      socket.auth = { token: "" };
+    }
   });
 
   _resolveReady();
@@ -135,41 +124,52 @@ export function initSocket(getToken) {
 }
 
 // ---------- Chat list ----------
-
-/**
- * REST: Get the current user's chats.
- * @param {() => Promise<string>} getToken
- * @returns {Promise<ChatSummary[]>}
- */
 export async function getUserChats(getToken) {
-  // ✅ use the same base as other chat REST calls (/chat-api)
   return fetchJSON(`/me/chats`, { method: "GET" }, getToken).then((data) =>
     Array.isArray(data?.items) ? data.items : []
   );
 }
 
 /**
- * Socket: Subscribe to list invalidation (chat:list:update/dirty or message:any).
- * Your callback should refetch the list using getUserChats().
- * @param {() => void} cb
- * @returns {() => void} unsubscribe
+ * Subscribe to list invalidation (debounced refetch).
+ * Your callback should refetch using getUserChats().
  */
 export function subscribeToUserChats(cb) {
+  // debounce to avoid refetch spam
+  let timer = null;
+  const ping = () => {
+    if (timer) return;
+    timer = setTimeout(() => {
+      timer = null;
+      cb && cb();
+    }, 250);
+  };
+
   function attach() {
-    const onUpdate = () => cb && cb();
+    const onUpdate = () => ping();
+    const onTouch = () => ping();
+    const onNew = () => ping();
+
     socket.on("chat:list:update", onUpdate);
+    socket.on("chat:touch", onTouch);
+    socket.on("chat:new", onNew);
+
+    // legacy
     socket.on("chat:list:dirty", onUpdate);
     socket.on("message:any", onUpdate);
+
     return () => {
       socket.off("chat:list:update", onUpdate);
+      socket.off("chat:touch", onTouch);
+      socket.off("chat:new", onNew);
       socket.off("chat:list:dirty", onUpdate);
       socket.off("message:any", onUpdate);
     };
   }
 
   if (!socket) {
-    let cancelled = false;
-    let detach = () => { };
+    let cancelled = false,
+      detach = () => {};
     _waitForSocket().then(() => {
       if (!cancelled && socket) detach = attach();
     });
@@ -178,25 +178,50 @@ export function subscribeToUserChats(cb) {
       detach && detach();
     };
   }
+  return attach();
+}
 
+/**
+ * NEW: Subscribe to raw chat events for optimistic UI updates.
+ * handlers: { onUpdate?, onTouch?, onNew? }
+ */
+export function subscribeToUserChatEvents(handlers = {}) {
+  const { onUpdate, onTouch, onNew } = handlers;
+
+  function attach() {
+    const hUpdate = (p) => onUpdate?.(p);
+    const hTouch = (p) => onTouch?.(p);
+    const hNew = (p) => onNew?.(p);
+
+    socket.on("chat:list:update", hUpdate);
+    socket.on("chat:touch", hTouch);
+    socket.on("chat:new", hNew);
+
+    return () => {
+      socket.off("chat:list:update", hUpdate);
+      socket.off("chat:touch", hTouch);
+      socket.off("chat:new", hNew);
+    };
+  }
+
+  if (!socket) {
+    let cancelled = false,
+      detach = () => {};
+    _waitForSocket().then(() => {
+      if (!cancelled && socket) detach = attach();
+    });
+    return () => {
+      cancelled = true;
+      detach && detach();
+    };
+  }
   return attach();
 }
 
 // ---------- Messages (history + live) ----------
-
-/**
- * REST: Get paged messages for a chat. Cursor is `${createdAt}.${_id}` for stable pagination.
- * @param {string} chatId
- * @param {number} limit
- * @param {string|null} cursor  e.g., "1724150400000.66bc1a12e9..." or null
- * @param {() => Promise<string>} getToken
- * @returns {Promise<{ items: ChatMessage[], nextCursor: string|null }>}
- */
 export async function getMessages(chatId, limit = 30, cursor = null, getToken) {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
-
-  // UI cursor "ts.id" → backend expects ?cursorTs=&cursorId=
   if (cursor) {
     const [tsStr, id] = String(cursor).split(".");
     if (tsStr && id) {
@@ -211,9 +236,7 @@ export async function getMessages(chatId, limit = 30, cursor = null, getToken) {
     getToken
   );
 
-  // backend returns newest→oldest; UI wants oldest→newest
   const itemsAsc = Array.isArray(data.items) ? [...data.items].reverse() : [];
-
   const nextCursor =
     data?.nextCursor?.ts && data?.nextCursor?.id
       ? `${data.nextCursor.ts}.${data.nextCursor.id}`
@@ -222,12 +245,6 @@ export async function getMessages(chatId, limit = 30, cursor = null, getToken) {
   return { items: itemsAsc, nextCursor };
 }
 
-/**
- * Socket + rooms: subscribe to live messages for a chat. Joins/leaves room.
- * @param {string} chatId
- * @param {(event: { type: 'new'|'edit'|'delete', message?: ChatMessage, messageId?: string }) => void} cb
- * @returns {() => void} unsubscribe
- */
 export function subscribeToMessages(chatId, cb) {
   function attach() {
     const channelNew = `message:new:${chatId}`;
@@ -254,8 +271,8 @@ export function subscribeToMessages(chatId, cb) {
   }
 
   if (!socket) {
-    let cancelled = false;
-    let detach = () => { };
+    let cancelled = false,
+      detach = () => {};
     _waitForSocket().then(() => {
       if (!cancelled && socket) detach = attach();
     });
@@ -264,24 +281,13 @@ export function subscribeToMessages(chatId, cb) {
       detach && detach();
     };
   }
-
   return attach();
 }
 
-/**
- * REST: Send a message to a chat.
- * @param {string} chatId
- * @param {{ type:'text'|'image', content: { text?: string, imageUrl?: string } }} body
- * @param {() => Promise<string>} getToken
- * @returns {Promise<ChatMessage>}
- */
 export function sendMessage(chatId, body, getToken) {
   return fetchJSON(
     `/chats/${encodeURIComponent(chatId)}/messages`,
-    {
-      method: "POST",
-      body: JSON.stringify(body),
-    },
+    { method: "POST", body: JSON.stringify(body) },
     getToken
   );
 }
@@ -292,24 +298,21 @@ export function setTyping(chatId, isTyping) {
   socket.emit("typing", { chatId, isTyping });
 }
 
-/** Socket: subscribe to typing events */
+/** Subscribe to typing events */
 export function subscribeToTyping(chatId, cb) {
-  if (!socket) return () => { };
+  if (!socket) return () => {};
   const channel = `typing:${chatId}`;
   const handler = (payload) => cb && cb(payload);
   socket.on(channel, handler);
   return () => socket.off(channel, handler);
 }
 
-/** REST: Mark messages as read (best-effort) */
+/** REST: persist read receipt (best-effort) */
 export async function markAsRead(chatId, messageId, getToken) {
   try {
     const res = await fetchJSON(
       `/chats/${encodeURIComponent(chatId)}/read`,
-      {
-        method: "POST",
-        body: JSON.stringify({ messageId }),
-      },
+      { method: "POST", body: JSON.stringify({ messageId }) },
       getToken
     );
     return res;
@@ -318,11 +321,20 @@ export async function markAsRead(chatId, messageId, getToken) {
   }
 }
 
-/** Ensure (or create) a direct chat with a user and return { chatId } */
+/** NEW: Socket: emit read so list updates in realtime */
+export function sendReadSocket(chatId, messageId) {
+  if (!socket) return;
+  socket.emit("read", { chatId, messageId });
+}
+
+/** Ensure or create a direct chat with a user and return { chatId } */
 export async function ensureDirectChatWith(otherUserId, getToken) {
   const data = await fetchJSON(
     `/chats/ensure`,
-    { method: "POST", body: JSON.stringify({ otherUserId: String(otherUserId) }) },
+    {
+      method: "POST",
+      body: JSON.stringify({ otherUserId: String(otherUserId) }),
+    },
     getToken
   );
   const chatId = data?.chatId || data?._id;
@@ -331,11 +343,12 @@ export async function ensureDirectChatWith(otherUserId, getToken) {
 }
 
 /** Create or get chat by participants (pet-aware) */
-// src/shared/services/chatService.js
-export async function createOrGetChatWithParticipants({ petId, otherUserId }, getToken) {
+export async function createOrGetChatWithParticipants(
+  { petId, otherUserId },
+  getToken
+) {
   const payload = { otherUserId: String(otherUserId) };
-  if (petId) payload.petId = String(petId); // <-- only set when truthy
-
+  if (petId) payload.petId = String(petId);
   const data = await fetchJSON(
     `/chats/ensure`,
     { method: "POST", body: JSON.stringify(payload) },
@@ -346,16 +359,7 @@ export async function createOrGetChatWithParticipants({ petId, otherUserId }, ge
   return { chatId, created: !!data?.created };
 }
 
-
 // ---------- Pawlo (assistant, uses /chat) ----------
-
-/**
- * Pawlo: send text + optional images to the assistant
- * Accepts either:
- *   pawloReply(message, history?, getToken?, imageUrls?)
- *   pawloReply({ message, history, imageUrls }, getToken?)
- * Returns the assistant's text reply (string). Throws on non-2xx.
- */
 export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
   let message, history, getToken, imageUrls;
 
@@ -371,7 +375,7 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
     imageUrls = Array.isArray(arg4) ? arg4 : [];
   }
 
-  const apiBase = getPawloBase(); // absolute base, e.g. http://.../chat
+  const apiBase = getPawloBase();
   const token = getToken ? await getToken() : await getTokenRef();
 
   const headers = {
@@ -397,7 +401,9 @@ export async function pawloReply(arg1, arg2 = [], arg3, arg4 = []) {
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
       const retriable = res.status === 404 || res.status === 405;
-      const err = new Error(`pawloReply ${res.status} ${res.statusText}: ${txt}`);
+      const err = new Error(
+        `pawloReply ${res.status} ${res.statusText}: ${txt}`
+      );
       err.retriable = retriable;
       throw err;
     }

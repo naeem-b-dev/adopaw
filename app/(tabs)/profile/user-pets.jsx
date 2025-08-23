@@ -5,6 +5,8 @@ import { Text, useTheme } from "react-native-paper";
 import { useTranslationLoader } from "../../../src/localization/hooks/useTranslationLoader";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PetsList from "../../../src/shared/components/ui/PetsList/PetsList";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
 
 export default function UserPetsScreen() {
   const { colors } = useTheme();
@@ -12,6 +14,24 @@ export default function UserPetsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslationLoader(["profile"]);
   const isRTL = I18nManager.isRTL;
+
+  const [ownerId, setOwnerId] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const userProfileString = await AsyncStorage.getItem("user-profile");
+        if (userProfileString) {
+          const userProfile = JSON.parse(userProfileString);
+          setOwnerId(userProfile && userProfile._id ? userProfile._id : null);
+        }
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   return (
     <View
@@ -41,9 +61,11 @@ export default function UserPetsScreen() {
 
       {/* Pets List */}
       <View style={{ flex: 1 }}>
-        <PetsList
-          fetchUrl={`${process.env.EXPO_PUBLIC_BACKEND_API_URL}/pet/`}
-        />
+        {ownerId && (
+          <PetsList
+            fetchUrl={`${process.env.EXPO_PUBLIC_BACKEND_API_URL}/pet/owner/${ownerId}`}
+          />
+        )}
       </View>
     </View>
   );
