@@ -34,7 +34,7 @@ export default function ProfileCompleteScreen() {
     if (image) {
       setImage(image);
     } else {
-      console.log("No image selected");
+      // console.log("No image selected");
     }
   };
 
@@ -43,76 +43,78 @@ export default function ProfileCompleteScreen() {
     setErrors((prev) => ({ ...prev, name: error }));
   };
 
-  const handleSubmit = async () => {
-    const nameError = name.trim() === "" ? "Name is required" : "";
-    const locationError = !location ? "Location is required" : "";
+const handleSubmit = async () => {
+  const nameError = name.trim() === "" ? "Name is required" : "";
+  const locationError = !location ? "Location is required" : "";
 
-    const newErrors = {
-      name: nameError,
-      location: locationError,
+  const newErrors = {
+    name: nameError,
+    location: locationError,
+  };
+
+  setErrors(newErrors);
+
+  if (nameError || locationError) {
+    return;
+  }
+
+  setLoading(true); // Show loading state
+
+  try {
+    let avatarUrl = null;
+
+    // Only upload the image if one is selected
+    if (image) {
+      const { signedUrl } = await uploadImageToSupabase(image, "avatars");
+      avatarUrl = signedUrl;
+    }
+
+    // Get user and access token from session
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    if (sessionError || !session)
+      throw new Error("Failed to retrieve user session.");
+
+    const user = session.user;
+    const accessToken = session.access_token;
+
+    // Construct profile payload
+    const newProfile = {
+      supaId: user.id,
+      email: user.email,
+      name,
+      location,
+      ...(avatarUrl && { avatarUrl }), // Only include avatarUrl if present
     };
 
-    setErrors(newErrors);
-
-    if (nameError || locationError) {
-      return;
-    }
-
-    setLoading(true); // Show loading state
-
-    try {
-      // Upload avatar image
-      const { signedUrl } = await uploadImageToSupabase(image, "avatars");
-
-      // Get user and access token from session
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      if (sessionError || !session)
-        throw new Error("Failed to retrieve user session.");
-
-      const user = session.user;
-      const accessToken = session.access_token;
-
-      // Construct profile payload
-      const newProfile = {
-        supaId: user.id,
-        email: user.email,
-        name,
-        avatarUrl: signedUrl,
-        location,
-      };
-
-      // Send profile to backend
-      const response = await axios.post(
-        `${process.env.EXPO_PUBLIC_BACKEND_API_URL}/profile/`,
-        newProfile,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response?.data) {
-        const { _id, ...restProfile } = response.data;
-        await AsyncStorage.setItem("p-id", _id.toString());
-        await AsyncStorage.setItem(
-          "user-profile",
-          JSON.stringify(response.data)
-        );
-
-        router.replace("/pet-preferences");
+    // Send profile to backend
+    const response = await axios.post(
+      `${process.env.EXPO_PUBLIC_BACKEND_API_URL}/profile/`,
+      newProfile,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
       }
-    } catch (error) {
-      console.error("Submit error:", error);
-      console.error("Response error:", error.response?.data || error.message);
-      Alert.alert("Error", "Could not complete profile.");
-    } finally {
-      setLoading(false);
+    );
+
+    if (response?.data) {
+      const { _id } = response.data;
+      await AsyncStorage.setItem("p-id", _id.toString());
+      await AsyncStorage.setItem("user-profile", JSON.stringify(response.data));
+      router.replace("/pet-preferences");
     }
-  };
+  } catch (error) {
+    console.error("Submit error:", error);
+    console.error("Response error:", error.response?.data || error.message);
+    Alert.alert("Error", "Could not complete profile.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.surface }]}>

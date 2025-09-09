@@ -92,7 +92,7 @@ export default function PetPreferencesScreen() {
       }
     } catch (error) {
       console.error("Error updating pet preferences:", error);
-      console.log(error.response);
+      // console.log(error.response);
     } finally {
       setLoading(false);
     }

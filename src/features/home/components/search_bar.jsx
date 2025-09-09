@@ -16,7 +16,7 @@ export default function SearchBar({ value, onChangeText, style, onSubmitEditing 
         mode="outlined"
         value={value}
         onChangeText={onChangeText}
-        placeholder={t("search.placeholder", "Search for Pet")}
+        placeholder={t("searchPlaceholder")}
         left={<TextInput.Icon icon="magnify" color={blue[500]} />}
         style={styles.input}
         theme={{ colors: { background: "#FFFFFF" } }}        // white fill

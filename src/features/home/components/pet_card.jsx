@@ -17,6 +17,18 @@ const formatAge = (age, t) => {
   return isMonth ? t("age.months", { count }) : t("age.years", { count });
 };
 
+// Map backend species to frontend category
+const mapSpeciesToCategory = (species) => {
+  const mapping = {
+    'dog': 'dog',
+    'cat': 'cat',
+    'rabbit': 'rabbit',
+    'fish': 'fish',
+    'bird': 'bird',
+    'hamster': 'hamster'
+  };
+  return mapping[species?.toLowerCase()] || 'other';
+};
 
 const headerBgByCategory = {
   cat: "#FFE8F0",
@@ -25,6 +37,7 @@ const headerBgByCategory = {
   fish: "#E8F5FF",
   bird: "#F1FFE8",
   hamster: "#FFF6E8",
+  other: "#F3F4F6",
 };
 
 export default function PetCard({ pet, onPress }) {
@@ -41,7 +54,15 @@ export default function PetCard({ pet, onPress }) {
     ? theme.colors.palette.blue[500]
     : theme.colors.palette.coral[500];
   const distanceText = pet.distanceText ?? null;
-  const headerBg = headerBgByCategory[pet.category] ?? "#F3F4F6";
+  
+  // Map species to category for styling
+  const category = mapSpeciesToCategory(pet.species);
+  const headerBg = headerBgByCategory[category] ?? "#F3F4F6";
+
+  // Handle images array from backend
+  const imageUrl = Array.isArray(pet.images) && pet.images.length > 0 
+    ? pet.images[0] 
+    : pet.image || "https://via.placeholder.com/300x300?text=No+Image";
 
   const nameFont = theme.fonts.titleLarge; // 20px per your tokens
   const genderSize = nameFont.fontSize;    // match name size
@@ -60,7 +81,7 @@ export default function PetCard({ pet, onPress }) {
     >
       <View style={[styles.header, { backgroundColor: headerBg }]}>
         <Image
-          source={{ uri: pet.images[0] }}
+          source={{ uri: imageUrl }}
           style={styles.image}
           resizeMode="cover"
         />
@@ -102,7 +123,7 @@ export default function PetCard({ pet, onPress }) {
 
           {pet.breed ? (
             <Pill
-              text={t(`breed.${pet.breed}`)}
+              text={t(`breed.${pet.breed}`) || pet.breed}
               bg="#FDE7EF"
               fg="#EC4899"
               icon="pets"

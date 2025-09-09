@@ -1,27 +1,123 @@
 [
   {
     "id": "1",
-    "name": "Happy Paws Shelter",
-    "description": "A friendly shelter with many adoptable pets",
+    "name": "Animals Lebanon",
+    "description": "Lebanon's leading animal welfare organization",
     "latitude": 33.8944,
     "longitude": 35.5018,
     "category": "shelter"
   },
   {
     "id": "2",
-    "name": "Downtown Vet Clinic",
-    "description": "24/7 veterinary services",
-    "latitude": 33.8898,
-    "longitude": 35.5055,
-    "category": "clinic"
+    "name": "AUB Veterinary Hospital",
+    "description": "American University of Beirut Veterinary Services",
+    "latitude": 33.8937,
+    "longitude": 35.4823,
+    "category": "veterinary"
   },
   {
     "id": "3",
-    "name": "Green Park Dog Area",
-    "description": "Off-leash area for dogs",
+    "name": "Pet Palace Achrafieh",
+    "description": "Complete pet supplies and accessories",
+    "latitude": 33.8898,
+    "longitude": 35.5055,
+    "category": "petstore"
+  },
+  {
+    "id": "4",
+    "name": "Horsh Beirut Dog Park",
+    "description": "Off-leash area for dogs in Beirut's largest park",
     "latitude": 33.8971,
     "longitude": 35.4972,
-    "category": "park"
+    "category": "parks"
+  },
+  {
+    "id": "5",
+    "name": "BETA Lebanon",
+    "description": "Beirut for the Ethical Treatment of Animals",
+    "latitude": 33.8888,
+    "longitude": 35.4955,
+    "category": "shelter"
+  },
+  {
+    "id": "6",
+    "name": "Clemenceau Veterinary Center",
+    "description": "24/7 emergency veterinary services",
+    "latitude": 33.8925,
+    "longitude": 35.4812,
+    "category": "emergency"
+  },
+  {
+    "id": "7",
+    "name": "Animal World Dbayeh",
+    "description": "Pet supplies, grooming and boarding services",
+    "latitude": 33.9445,
+    "longitude": 35.5892,
+    "category": "petstore"
+  },
+  {
+    "id": "8",
+    "name": "Paws & Claws Grooming",
+    "description": "Professional pet grooming services",
+    "latitude": 33.8912,
+    "longitude": 35.5124,
+    "category": "grooming"
+  },
+  {
+    "id": "9",
+    "name": "North Lebanon Vet - Tripoli",
+    "description": "Veterinary clinic serving North Lebanon",
+    "latitude": 34.4333,
+    "longitude": 35.8333,
+    "category": "veterinary"
+  },
+  {
+    "id": "10",
+    "name": "Batroun Animal Care",
+    "description": "Coastal veterinary services",
+    "latitude": 34.2553,
+    "longitude": 35.6581,
+    "category": "veterinary"
+  },
+  {
+    "id": "11",
+    "name": "Tripoli Pet Supplies",
+    "description": "Pet food, toys and accessories",
+    "latitude": 34.4361,
+    "longitude": 35.8369,
+    "category": "petstore"
+  },
+  {
+    "id": "12",
+    "name": "Zgharta Dog Training Center",
+    "description": "Professional dog training and behavioral services",
+    "latitude": 34.3986,
+    "longitude": 35.8972,
+    "category": "training"
+  },
+  {
+    "id": "13",
+    "name": "Sanayeh Garden",
+    "description": "Pet-friendly park in central Beirut",
+    "latitude": 33.8947,
+    "longitude": 35.4883,
+    "category": "parks"
+  },
+  {
+    "id": "14",
+    "name": "SPARE Animal Rescue",
+    "description": "Society for the Protection of Animal Rights",
+    "latitude": 33.8765,
+    "longitude": 35.5234,
+    "category": "shelter"
+  },
+  {
+    "id": "15",
+    "name": "Emergency Pet Care Beirut",
+    "description": "24/7 emergency veterinary services",
+    "latitude": 33.8834,
+    "longitude": 35.5187,
+    "category": "emergency"
   }
 ]
 
