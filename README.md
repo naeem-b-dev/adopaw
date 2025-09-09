@@ -1,103 +1,123 @@
-# 🐾 AdoPaw — Advanced Pet Adoption Platform
+# 🐾 AdoPaw — Pet Adoption Mobile App
 
-> **A sophisticated mobile application for pet adoption built with React Native (Expo), featuring AI-powered matching, real-time chat, and enterprise-grade architecture.**
+> **A React Native mobile application for pet adoption built with Expo, featuring real-time chat, multi-language support, and location-based pet discovery.**
 
-AdoPaw revolutionizes pet adoption by connecting potential pet owners with shelters through an intelligent, user-friendly platform. Built with modern development practices and advanced features including AI-powered pet matching, real-time communication, and comprehensive security measures.
+AdoPaw connects potential pet owners with shelters through an intuitive mobile platform. Built with modern React Native development practices, featuring real-time communication, comprehensive internationalization, and location-based services.
 
 ---
 
 ## ✨ Key Features
 
 ### 🏠 **Core Functionality**
-- **Smart Pet Discovery** - Browse and filter pets with advanced search capabilities
+- **Pet Discovery** - Browse and search pets with advanced filtering
 - **Interactive Maps** - Location-based pet discovery with Google Maps integration
-- **Detailed Pet Profiles** - Comprehensive pet information with image galleries
-- **User Profiles** - Complete user management with preferences and history
+- **Pet Profiles** - Detailed pet information with image galleries
+- **User Profiles** - Complete user management with preferences
+- **Pet Registration** - Full pet listing system with image upload
 
-### 🤖 **AI-Powered Features**
-- **Intelligent Pet Matching** - AI algorithm matches users with compatible pets
-- **Breed Recognition** - Automatic breed identification from pet images
-- **Health Assessment** - AI-powered health condition analysis
-- **Enhanced Pawlo Chatbot** - Advanced conversational AI for pet advice
-- **Personalized Recommendations** - Machine learning-driven pet suggestions
+### 🌍 **Internationalization**
+- **Multi-language Support** - Arabic and English localization with RTL support
+- **Dynamic Language Switching** - Real-time language changes
+- **Cultural Adaptation** - Region-specific content and UI adaptations
 
 ### 💬 **Real-Time Communication**
-- **Live Chat System** - Real-time messaging with Socket.IO
-- **AI Chatbot Integration** - 24/7 pet advice and support
-- **Push Notifications** - Instant updates for matches and messages
+- **Live Chat System** - Real-time messaging with Socket.IO integration
+- **Pawlo AI Chatbot** - AI-powered pet advice and adoption guidance
 - **Multi-media Support** - Image and text messaging capabilities
 
-### 🔒 **Enterprise Security**
-- **JWT Authentication** - Secure token-based authentication
-- **Input Validation & Sanitization** - Comprehensive data protection
-- **Rate Limiting** - API protection against abuse
-- **Encrypted Storage** - Secure local data storage
-- **Request Queuing** - Optimized API request management
+### 🗺️ **Location Services**
+- **GPS Integration** - Current location detection and updates
+- **Interactive Maps** - Google Maps with custom markers and place discovery
+- **Location-based Search** - Find pets and places near your location
 
-### 🎨 **Advanced UI/UX**
-- **Responsive Design** - Optimized for all screen sizes
-- **Dark/Light Mode** - Adaptive theming system
-- **Smooth Animations** - Fluid transitions and micro-interactions
-- **Accessibility Support** - WCAG compliant interface
-- **Progressive Loading** - Optimized image and content loading
+### 🔐 **Authentication & Security**
+- **Supabase Authentication** - Secure user authentication and session management
+- **JWT Tokens** - Secure token-based authentication
+- **Input Validation** - Form validation and data sanitization
 
 ---
 
 ## 🛠️ Tech Stack
 
-### **Frontend Architecture**
-- **React Native (Expo)** - Cross-platform mobile development
-- **Redux Toolkit** - Advanced state management
-- **React Query** - Server state management and caching
+### **Frontend**
+- **React Native (Expo SDK 53)** - Cross-platform mobile development
+- **Redux Toolkit** - State management with RTK Query
+- **React Query (TanStack Query)** - Server state management and caching
 - **React Native Paper** - Material Design components
 - **Expo Router** - File-based navigation system
+- **React Native Reanimated** - Animations and gestures
 
 ### **Backend & Services**
 - **Supabase** - Backend-as-a-Service (Authentication, Database, Storage)
-- **Socket.IO** - Real-time communication
+- **Socket.IO Client** - Real-time bidirectional communication
 - **Axios** - HTTP client with interceptors
-- **Joi** - Schema validation and sanitization
+- **AsyncStorage** - Local data persistence
 
-### **AI & Machine Learning**
-- **Custom AI Services** - Pet matching algorithms
-- **Image Recognition** - Breed and health assessment
-- **Natural Language Processing** - Enhanced chatbot capabilities
-- **Recommendation Engine** - Personalized pet suggestions
+### **Maps & Location**
+- **React Native Maps** - Native map integration
+- **Expo Location** - GPS and location services
+- **Google Maps API** - Advanced mapping services
+
+### **Internationalization**
+- **i18next** - Internationalization framework
+- **React i18next** - React integration for i18n
+- **Expo Localization** - Device locale detection
 
 ### **Development Tools**
 - **TypeScript** - Type-safe development
 - **ESLint & Prettier** - Code quality and formatting
-- **Metro Bundler** - Optimized build system
-- **Hermes Engine** - Enhanced JavaScript performance
-
-### **Performance & Optimization**
-- **Lazy Loading** - Efficient resource management
-- **Virtual Scrolling** - Optimized list rendering
-- **Image Optimization** - Progressive image loading
-- **Bundle Splitting** - Reduced app size and load times
+- **Metro Bundler** - Build system
+- **Hermes Engine** - JavaScript performance
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏗️ Project Structure
 
 ```
-src/
-├── app/                    # File-based routing (Expo Router)
-│   ├── (auth)/            # Authentication screens
-│   ├── (tabs)/            # Main app tabs
-│   └── (onboarding)/      # User onboarding flow
+adopaw-frontend/
+├── app/                           # File-based routing (Expo Router)
+│   ├── (auth)/                   # Authentication screens
+│   │   ├── login.jsx            # Login with email/password
+│   │   ├── signup.jsx           # User registration
+│   │   ├── otp.jsx              # OTP verification
+│   │   ├── pet-preferences.jsx  # Pet preference setup
+│   │   └── profile-complete.jsx # Profile completion
+│   ├── (onboarding)/            # User onboarding flow
+│   │   ├── get-started.jsx      # Welcome screen
+│   │   ├── step1-4.jsx          # Onboarding steps
+│   │   └── index.jsx            # Onboarding entry
+│   ├── (tabs)/                  # Main app navigation
+│   │   ├── home/                # Pet discovery & listings
+│   │   ├── map/                 # Location-based pet search
+│   │   ├── chats/               # Real-time messaging
+│   │   ├── addPet/              # Pet registration
+│   │   └── profile/             # User management
+│   └── _layout.jsx              # Root layout with providers
 ├── src/
-│   ├── features/          # Feature-based modules
-│   │   ├── auth/          # Authentication logic
-│   │   ├── pets/          # Pet management
-│   │   ├── chats/         # Chat functionality
-│   │   └── profile/       # User profiles
-│   ├── shared/            # Shared components and services
-│   │   ├── components/    # Reusable UI components
-│   │   ├── services/      # API and business logic
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── utils/         # Utility functions
-│   └── localization/      # Internationalization
+│   ├── features/                # Feature-based architecture
+│   │   ├── auth/                # Authentication system
+│   │   ├── pets/                # Pet management
+│   │   ├── chats/               # Real-time communication
+│   │   ├── home/                # Pet discovery
+│   │   ├── map/                 # Location services
+│   │   ├── profile/             # User management
+│   │   └── addPet/              # Pet registration
+│   ├── shared/                  # Shared resources
+│   │   ├── components/          # Reusable UI components
+│   │   ├── services/            # Core services
+│   │   ├── hooks/               # Custom React hooks
+│   │   ├── utils/               # Utility functions
+│   │   └── constants/           # App constants
+│   ├── localization/            # Internationalization
+│   │   ├── locale/              # Translation files (ar/en)
+│   │   ├── hooks/               # Translation hooks
+│   │   └── utils/               # i18n utilities
+│   ├── theme/                   # Design system
+│   └── context/                 # React contexts
+└── assets/                      # Static assets
+    ├── images/                  # Images & icons
+    ├── fonts/                   # Custom fonts
+    └── svg/                     # SVG assets
 ```
 
 ---
@@ -145,66 +165,108 @@ src/
 
 ---
 
-## 📱 Screenshots
+## 📸 Screenshots
 
-> *Screenshots will be added here showcasing the app's key features and beautiful UI design*
+<div align="center">
+  <img src="screenshots/Screenshot 2025-08-22 181737.png" alt="Home Page - Cat Category Search" width="200" />
+  <img src="screenshots/Screenshot 2025-08-22 181743.png" alt="Home Page - Dog Category Search" width="200" />
+  <img src="screenshots/Screenshot 2025-08-22 193128.png" alt="Filter Options" width="200" />
+  <img src="screenshots/Screenshot 2025-08-22 193138.png" alt="Home Page - Selected Cat Category" width="200" />
+  <img src="screenshots/Screenshot 2025-08-23 031130.png" alt="Map Page - Nearest Places List" width="200" />
+  <img src="screenshots/Screenshot 2025-08-23 031223.png" alt="Map Page - Veterinary Category Selected" width="200" />
+</div>
 
----
-
-## 🔧 Development Features
-
-### **Development Mode**
-- **Auto-login bypass** for faster development
-- **Mock data services** for testing without backend
-- **Development tools** for debugging and testing
-- **Hot reload** for instant code changes
-
-### **Code Quality**
-- **TypeScript** for type safety
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Husky** for git hooks
-- **Conventional commits** for clean git history
+*Screenshots showing pet discovery, filtering, and location-based features*
 
 ---
 
-## 🚀 Performance Optimizations
+## 📱 App Features
 
-- **Bundle Size**: Optimized with tree shaking and code splitting
-- **Memory Management**: Efficient component lifecycle management
-- **Image Loading**: Progressive and lazy loading strategies
-- **Network Optimization**: Request queuing and caching
-- **Rendering**: Virtual scrolling for large lists
+### **Home Tab**
+- Pet discovery with search and filtering
+- Category-based pet browsing
+- Infinite scroll with pagination
+- Pull-to-refresh functionality
+
+### **Map Tab**
+- Interactive Google Maps integration
+- Location-based pet and place discovery
+- Search and filter places by category
+- Current location tracking
+
+### **Chats Tab**
+- Real-time messaging system
+- Pawlo AI chatbot for pet advice
+- Image and text message support
+- Chat history and suggestions
+
+### **Add Pet Tab**
+- Complete pet registration form
+- Image upload and management
+- Pet health and behavior information
+- Location-based pet listing
+
+### **Profile Tab**
+- User profile management
+- Pet preferences and settings
+- Theme and language selection
+- Account management
 
 ---
 
-## 🔮 Future Roadmap
+## 🎯 Key Technologies & Skills
 
-### **Phase 1 - Enhanced AI**
-- [ ] Advanced pet behavior analysis
-- [ ] Predictive adoption success rates
-- [ ] Voice-activated pet search
+### **React Native Development**
+- Cross-platform mobile development
+- Component-based architecture
+- Custom hooks and state management
+- Performance optimization
 
-### **Phase 2 - Social Features**
-- [ ] Pet owner community
-- [ ] Adoption success stories
-- [ ] Social sharing capabilities
+### **Real-time Features**
+- Socket.IO integration for live chat
+- AI chatbot implementation
+- Real-time data synchronization
 
-### **Phase 3 - Advanced Features**
-- [ ] AR pet visualization
+### **Location Services**
+- GPS integration and location tracking
+- Google Maps API integration
+- Location-based search and filtering
+
+### **Internationalization**
+- Multi-language support (Arabic/English)
+- RTL (Right-to-Left) layout support
+- Dynamic language switching
+
+### **Backend Integration**
+- Supabase for authentication and database
+- RESTful API integration
+- Image upload and storage
+- Secure data handling
+
+---
+
+## 🔮 Future Enhancements
+
+### **Planned Features**
+- [ ] Push notifications
+- [ ] Advanced pet matching algorithm
 - [ ] Video calling with shelters
-- [ ] Blockchain-based pet records
+- [ ] Social features and community
+- [ ] Pet health tracking
+- [ ] Adoption success stories
 
-### **Phase 4 - Platform Expansion**
-- [ ] Web application
-- [ ] Admin dashboard
-- [ ] Multi-language support
+### **Technical Improvements**
+- [ ] Offline mode support
+- [ ] Advanced caching strategies
+- [ ] Performance monitoring
+- [ ] Automated testing
+- [ ] CI/CD pipeline
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -216,31 +278,26 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open source. Please check the repository for licensing details.
 
 ---
 
 ## 👥 Team
 
-- **Naeem B** - Lead Developer & Architect
-- **AI Assistant** - Code Review & Optimization
+This project was developed as a final project for **Tashgheel 3 - Coding Track** by the Lebanese Association for Scientific Research (LASeR):
+
+- **Naeem B** - Mobile Developer & Frontend Architect
+- **Abdelrahman Assoum** ([@abdelrahman-assoum](https://github.com/abdelrahman-assoum)) - Developer
+- **Assoumn** ([@assoumn](https://github.com/assoumn)) - Developer
+
+**Organization:** [Lebanese Association for Scientific Research (LASeR)](https://www.linkedin.com/company/lebanese-association-for-scientific-research-laser)
 
 ---
 
 ## 📞 Support
 
 - **Email**: support@adopaw.com
-- **Documentation**: [docs.adopaw.com](https://docs.adopaw.com)
 - **Issues**: [GitHub Issues](https://github.com/naeem-b-dev/adopaw-frontend/issues)
-
----
-
-## 🙏 Acknowledgments
-
-- React Native and Expo communities
-- Supabase for backend services
-- All contributors and testers
-- Pet shelters and adoption centers
 
 ---
 
